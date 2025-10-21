@@ -68,7 +68,7 @@ public class AccountantRestController {
 
     @GetMapping("/invoices/status/{status}")
     public ResponseEntity<List<com.uteexpress.entity.Invoice>> getInvoicesByStatus(@PathVariable String status) {
-        return ResponseEntity.ok(invoiceService.getInvoicesByStatus(com.uteexpress.entity.InvoiceStatus.valueOf(status)));
+        return ResponseEntity.ok(invoiceService.getInvoicesByStatus(com.uteexpress.entity.Invoice.InvoiceStatus.valueOf(status)));
     }
 
     @GetMapping("/invoices/date-range")
@@ -85,7 +85,7 @@ public class AccountantRestController {
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate) {
         return ResponseEntity.ok(financialReportService.generateReport(
-                com.uteexpress.entity.ReportType.valueOf(reportType), startDate, endDate));
+                com.uteexpress.entity.FinancialReport.ReportType.valueOf(reportType), startDate, endDate));
     }
 
     @GetMapping("/reports")

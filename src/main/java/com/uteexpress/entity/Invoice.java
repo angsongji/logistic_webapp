@@ -61,13 +61,28 @@ public class Invoice {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         issuedDate = LocalDateTime.now();
-        if (status == null) {
-            status = InvoiceStatus.PENDING;
-        }
+        if (status == null) status = InvoiceStatus.PENDING;
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public enum InvoiceStatus {
+        PENDING("Chờ thanh toán"),
+        PAID("Đã thanh toán"),
+        OVERDUE("Quá hạn"),
+        CANCELLED("Đã hủy");
+
+        private final String displayName;
+
+        InvoiceStatus(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 }

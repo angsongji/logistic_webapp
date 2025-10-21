@@ -17,15 +17,29 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Order orderRef;
 
+    @Column(nullable = false)
     private BigDecimal amount;
-    private String method;     
-    private String status;     
+
+    @Column
+    private String method;
+
+    @Column
+    private String status;
+
+    @Column
     private String transactionId;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }

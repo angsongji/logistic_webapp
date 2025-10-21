@@ -67,10 +67,10 @@ public class Shipper {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        totalDeliveries = 0;
-        successfulDeliveries = 0;
-        failedDeliveries = 0;
-        isActive = true;
+        if (totalDeliveries == null) totalDeliveries = 0;
+        if (successfulDeliveries == null) successfulDeliveries = 0;
+        if (failedDeliveries == null) failedDeliveries = 0;
+        if (isActive == null) isActive = true;
     }
 
     @PreUpdate

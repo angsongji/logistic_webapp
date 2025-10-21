@@ -1,7 +1,6 @@
 package com.uteexpress.dto.accountant;
 
-import com.uteexpress.entity.DebtStatus;
-import com.uteexpress.entity.DebtType;
+import com.uteexpress.entity.Debt;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -20,8 +19,8 @@ public class DebtDto {
     private BigDecimal amount;
     private BigDecimal paidAmount;
     private BigDecimal remainingAmount;
-    private DebtType debtType;
+    private Debt.DebtType debtType;
     private String description;
     private LocalDateTime dueDate;
-    private DebtStatus status;
+    private Debt.DebtStatus status;
 }

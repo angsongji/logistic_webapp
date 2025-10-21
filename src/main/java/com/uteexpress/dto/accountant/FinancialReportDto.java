@@ -1,6 +1,6 @@
 package com.uteexpress.dto.accountant;
 
-import com.uteexpress.entity.ReportType;
+import com.uteexpress.entity.FinancialReport;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public class FinancialReportDto {
     private Long id;
     private String reportName;
-    private ReportType reportType;
+    private FinancialReport.ReportType reportType;
     private LocalDate reportDate;
     private LocalDate startDate;
     private LocalDate endDate;

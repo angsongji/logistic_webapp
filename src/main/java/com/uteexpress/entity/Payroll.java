@@ -54,8 +54,23 @@ public class Payroll {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (status == null) {
-            status = PayrollStatus.PENDING;
+        if (status == null) status = PayrollStatus.PENDING;
+    }
+    
+    public enum PayrollStatus {
+        PENDING("Chờ duyệt"),
+        APPROVED("Đã duyệt"),
+        PAID("Đã thanh toán"),
+        CANCELLED("Đã hủy");
+
+        private final String displayName;
+
+        PayrollStatus(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
         }
     }
 }

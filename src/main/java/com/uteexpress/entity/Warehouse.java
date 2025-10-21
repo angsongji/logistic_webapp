@@ -52,6 +52,6 @@ public class Warehouse {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        currentStock = 0;
+        if (currentStock == null) currentStock = 0;
     }
 }

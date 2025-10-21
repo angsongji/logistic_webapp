@@ -8,7 +8,7 @@ public class OrderStatusListener {
     @PostUpdate
     public void afterUpdate(Order order) {
         if (order == null || order.getStatus() == null) return;
-        if (order.getStatus() == OrderStatus.HOAN_THANH) {
+        if (order.getStatus() == Order.OrderStatus.HOAN_THANH) {
             String username = null;
             if (order.getCustomer() != null) {
                 // Customer entity stores username directly

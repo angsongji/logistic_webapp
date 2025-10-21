@@ -1,7 +1,6 @@
 package com.uteexpress.service.impl;
 
 import com.uteexpress.entity.Order;
-import com.uteexpress.entity.OrderStatus;
 import com.uteexpress.entity.Payment;
 import com.uteexpress.repository.OrderRepository;
 import com.uteexpress.repository.PaymentRepository;
@@ -43,7 +42,7 @@ public class PaymentServiceImpl implements PaymentService {
         p.setCreatedAt(LocalDateTime.now());
         paymentRepository.save(p);
 
-        order.setStatus(OrderStatus.CHO_GIAO);
+        order.setStatus(Order.OrderStatus.CHO_GIAO);
         orderRepository.save(order);
 
         // Note: Customer entity doesn't have notification method, skipping for now

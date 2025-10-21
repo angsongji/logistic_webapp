@@ -52,6 +52,7 @@ public class Address {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        if (isDefault == null) isDefault = false;
     }
 
     @PreUpdate

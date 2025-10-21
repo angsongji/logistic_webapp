@@ -1,6 +1,6 @@
 package com.uteexpress.dto.customer;
 
-import com.uteexpress.entity.ServiceType;
+import com.uteexpress.entity.Order;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.math.BigDecimal;
@@ -17,7 +17,7 @@ public class OrderRequestDto {
     private String recipientName;
     private String recipientPhone;
     private String recipientAddress;
-    private ServiceType serviceType;
+    private Order.ServiceType serviceType;
     private BigDecimal shipmentFee;
     private String notes;
     private List<OrderItemDto> items;

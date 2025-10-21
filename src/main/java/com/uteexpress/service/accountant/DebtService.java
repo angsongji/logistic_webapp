@@ -2,8 +2,6 @@ package com.uteexpress.service.accountant;
 
 import com.uteexpress.dto.accountant.DebtDto;
 import com.uteexpress.entity.Debt;
-import com.uteexpress.entity.DebtStatus;
-import com.uteexpress.entity.DebtType;
 import com.uteexpress.entity.User;
 
 import java.math.BigDecimal;
@@ -14,8 +12,8 @@ public interface DebtService {
     List<Debt> getAllDebts();
     List<Debt> getDebtsByDebtor(User debtor);
     List<Debt> getDebtsByCreditor(User creditor);
-    List<Debt> getDebtsByTypeAndStatus(DebtType debtType, DebtStatus status);
-    Debt updateDebtStatus(Long debtId, DebtStatus status);
+    List<Debt> getDebtsByTypeAndStatus(Debt.DebtType debtType, Debt.DebtStatus status);
+    Debt updateDebtStatus(Long debtId, Debt.DebtStatus status);
     Debt makePayment(Long debtId, BigDecimal amount);
     BigDecimal getTotalDebtByDebtor(User debtor);
     BigDecimal getTotalReceivableByCreditor(User creditor);

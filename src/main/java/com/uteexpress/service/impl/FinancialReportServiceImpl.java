@@ -2,7 +2,6 @@ package com.uteexpress.service.impl;
 
 import com.uteexpress.dto.accountant.FinancialReportDto;
 import com.uteexpress.entity.FinancialReport;
-import com.uteexpress.entity.ReportType;
 import com.uteexpress.repository.FinancialReportRepository;
 import com.uteexpress.service.accountant.FinancialReportService;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,7 @@ public class FinancialReportServiceImpl implements FinancialReportService {
     }
 
     @Override
-    public FinancialReport generateReport(ReportType reportType, LocalDate startDate, LocalDate endDate) {
+    public FinancialReport generateReport(FinancialReport.ReportType reportType, LocalDate startDate, LocalDate endDate) {
         // Implementation will be added later
         return null;
     }
@@ -32,7 +31,7 @@ public class FinancialReportServiceImpl implements FinancialReportService {
     }
 
     @Override
-    public List<FinancialReport> getReportsByType(ReportType reportType) {
+    public List<FinancialReport> getReportsByType(FinancialReport.ReportType reportType) {
         return financialReportRepository.findByReportTypeOrderByReportDateDesc(reportType);
     }
 

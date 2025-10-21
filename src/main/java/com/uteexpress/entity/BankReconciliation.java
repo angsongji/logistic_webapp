@@ -47,11 +47,28 @@ public class BankReconciliation {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (status == null) {
-            status = ReconciliationStatus.PENDING;
-        }
+        if (status == null) status = ReconciliationStatus.PENDING;
         if (differenceAmount == null) {
             differenceAmount = statementBalance.subtract(bookBalance);
+        }
+    }
+
+    // ========== INNER ENUM ==========
+    
+    public enum ReconciliationStatus {
+        PENDING("Chờ đối soát"),
+        MATCHED("Đã khớp"),
+        DISCREPANCY("Có chênh lệch"),
+        RESOLVED("Đã giải quyết");
+
+        private final String displayName;
+
+        ReconciliationStatus(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
         }
     }
 }

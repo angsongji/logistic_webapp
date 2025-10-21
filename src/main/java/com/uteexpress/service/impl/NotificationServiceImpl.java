@@ -2,7 +2,6 @@ package com.uteexpress.service.impl;
 
 import com.uteexpress.dto.websocket.NotificationMessage;
 import com.uteexpress.entity.Notification;
-import com.uteexpress.entity.NotificationType;
 import com.uteexpress.entity.User;
 import com.uteexpress.repository.NotificationRepository;
 import com.uteexpress.service.notification.NotificationService;
@@ -25,11 +24,11 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendNotification(User recipient, String title, String body) {
-        // ✅ Lấy vai trò chính của user (vì User có Set<Role>)
+        // ✅ Lấy vai trò chính của user
         String mainRole = recipient.getRoles()
                 .stream()
                 .findFirst()
-                .map(role -> role.getName().name()) // role.getName() trả về RoleType, nên cần .name() để thành String
+                .map(Enum::name)
                 .orElse("ROLE_USER");
 
         // ✅ Tạo đối tượng Notification
@@ -38,7 +37,7 @@ public class NotificationServiceImpl implements NotificationService {
         n.setRecipientType(mainRole);
         n.setTitle(title);
         n.setMessage(body);
-        n.setType(NotificationType.INFO);
+        n.setType(Notification.NotificationType.INFO);
         n.setCreatedAt(LocalDateTime.now());
         notificationRepository.save(n);
 

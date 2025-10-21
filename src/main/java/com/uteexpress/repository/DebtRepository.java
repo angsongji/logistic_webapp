@@ -1,8 +1,6 @@
 package com.uteexpress.repository;
 
 import com.uteexpress.entity.Debt;
-import com.uteexpress.entity.DebtStatus;
-import com.uteexpress.entity.DebtType;
 import com.uteexpress.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,7 +12,7 @@ import java.util.List;
 public interface DebtRepository extends JpaRepository<Debt, Long> {
     List<Debt> findByDebtorOrderByCreatedAtDesc(User debtor);
     List<Debt> findByCreditorOrderByCreatedAtDesc(User creditor);
-    List<Debt> findByDebtTypeAndStatus(DebtType debtType, DebtStatus status);
+    List<Debt> findByDebtTypeAndStatus(Debt.DebtType debtType, Debt.DebtStatus status);
     
     @Query("SELECT SUM(d.remainingAmount) FROM Debt d WHERE d.debtor = :debtor AND d.status != 'PAID'")
     Double getTotalDebtByDebtor(User debtor);

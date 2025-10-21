@@ -53,7 +53,7 @@ public class Order {
 
     @Column
     @Enumerated(EnumType.STRING)
-    private com.uteexpress.entity.ServiceType serviceType;
+    private ServiceType serviceType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
@@ -71,11 +71,37 @@ public class Order {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        status = OrderStatus.CHO_GIAO;
+        if (status == null) status = OrderStatus.CHO_GIAO;
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public enum OrderStatus {
+        CHO_GIAO, DANG_GIAO, HOAN_THANH, THAT_BAI, HUY
+    }
+
+    public enum ServiceType {
+        CHUAN("Chuẩn", 1.0),
+        NHANH("Nhanh", 1.5),
+        TIET_KIEM("Tiết kiệm", 0.8);
+
+        private final String displayName;
+        private final double multiplier;
+
+        ServiceType(String displayName, double multiplier) {
+            this.displayName = displayName;
+            this.multiplier = multiplier;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public double getMultiplier() {
+            return multiplier;
+        }
     }
 }

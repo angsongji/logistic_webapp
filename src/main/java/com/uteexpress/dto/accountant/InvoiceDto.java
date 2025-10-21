@@ -1,6 +1,6 @@
 package com.uteexpress.dto.accountant;
 
-import com.uteexpress.entity.InvoiceStatus;
+import com.uteexpress.entity.Invoice;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -21,7 +21,7 @@ public class InvoiceDto {
     private BigDecimal taxAmount;
     private BigDecimal totalAmount;
     private String description;
-    private InvoiceStatus status;
+    private Invoice.InvoiceStatus status;
     private LocalDateTime issuedDate;
     private LocalDateTime dueDate;
     private LocalDateTime paidDate;

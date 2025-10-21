@@ -3,10 +3,7 @@ package com.uteexpress.service.impl;
 import com.uteexpress.config.JwtProvider;
 import com.uteexpress.dto.auth.LoginRequest;
 import com.uteexpress.dto.auth.RegisterRequest;
-import com.uteexpress.entity.Role;
-import com.uteexpress.entity.RoleType;
 import com.uteexpress.entity.User;
-import com.uteexpress.repository.RoleRepository;
 import com.uteexpress.repository.UserRepository;
 import com.uteexpress.service.AuthService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,16 +16,13 @@ import java.util.Set;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
     private final PasswordEncoder encoder;
     private final JwtProvider jwtProvider;
 
     public AuthServiceImpl(UserRepository userRepository,
-                           RoleRepository roleRepository,
                            PasswordEncoder encoder,
                            JwtProvider jwtProvider) {
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
         this.encoder = encoder;
         this.jwtProvider = jwtProvider;
     }
@@ -44,11 +38,8 @@ public class AuthServiceImpl implements AuthService {
         u.setEmail(req.getEmail());
         u.setFullName(req.getFullName());
         u.setPhone(req.getPhone());
-
-        Role customerRole = roleRepository.findByName(RoleType.ROLE_CUSTOMER)
-                .orElseGet(() -> roleRepository.save(Role.builder().name(RoleType.ROLE_CUSTOMER).build()));
-
-        u.setRoles(Set.of(customerRole));
+        u.setRoles(Set.of(User.RoleType.ROLE_CUSTOMER));
+        
         userRepository.save(u);
 
         return Map.of("message", "Đăng ký thành công!");
@@ -66,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
         String role = user.getRoles()
                 .stream()
                 .findFirst()
-                .map(r -> r.getName().name())
+                .map(Enum::name)
                 .orElse("ROLE_CUSTOMER");
         return Map.of("token", token, "role", role);
     }

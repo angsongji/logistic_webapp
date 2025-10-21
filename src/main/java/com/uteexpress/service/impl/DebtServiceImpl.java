@@ -2,8 +2,6 @@ package com.uteexpress.service.impl;
 
 import com.uteexpress.dto.accountant.DebtDto;
 import com.uteexpress.entity.Debt;
-import com.uteexpress.entity.DebtStatus;
-import com.uteexpress.entity.DebtType;
 import com.uteexpress.entity.User;
 import com.uteexpress.repository.DebtRepository;
 import com.uteexpress.service.accountant.DebtService;
@@ -43,12 +41,12 @@ public class DebtServiceImpl implements DebtService {
     }
 
     @Override
-    public List<Debt> getDebtsByTypeAndStatus(DebtType debtType, DebtStatus status) {
+    public List<Debt> getDebtsByTypeAndStatus(Debt.DebtType debtType, Debt.DebtStatus status) {
         return debtRepository.findByDebtTypeAndStatus(debtType, status);
     }
 
     @Override
-    public Debt updateDebtStatus(Long debtId, DebtStatus status) {
+    public Debt updateDebtStatus(Long debtId, Debt.DebtStatus status) {
         Debt debt = debtRepository.findById(debtId).orElse(null);
         if (debt != null) {
             debt.setStatus(status);
@@ -64,9 +62,9 @@ public class DebtServiceImpl implements DebtService {
             BigDecimal currentPaid = debt.getPaidAmount() != null ? debt.getPaidAmount() : BigDecimal.ZERO;
             debt.setPaidAmount(currentPaid.add(amount));
             if (debt.getPaidAmount().compareTo(debt.getAmount()) >= 0) {
-                debt.setStatus(DebtStatus.PAID);
+                debt.setStatus(Debt.DebtStatus.PAID);
             } else {
-                debt.setStatus(DebtStatus.PARTIAL);
+                debt.setStatus(Debt.DebtStatus.PARTIAL);
             }
             return debtRepository.save(debt);
         }

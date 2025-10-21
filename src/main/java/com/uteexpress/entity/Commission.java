@@ -48,9 +48,41 @@ public class Commission {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        calculatedDate = LocalDateTime.now();
-        if (status == null) {
-            status = CommissionStatus.PENDING;
+        if (calculatedDate == null) calculatedDate = LocalDateTime.now();
+        if (status == null) status = CommissionStatus.PENDING;
+    }
+    
+    public enum CommissionStatus {
+        PENDING("Chờ thanh toán"),
+        APPROVED("Đã duyệt"),
+        PAID("Đã thanh toán"),
+        CANCELLED("Đã hủy");
+
+        private final String displayName;
+
+        CommissionStatus(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
+    public enum CommissionType {
+        DELIVERY("Hoa hồng giao hàng"),
+        PICKUP("Hoa hồng lấy hàng"),
+        BONUS("Thưởng"),
+        PENALTY("Phạt");
+
+        private final String displayName;
+
+        CommissionType(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
         }
     }
 }

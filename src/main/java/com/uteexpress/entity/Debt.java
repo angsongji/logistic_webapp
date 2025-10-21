@@ -54,12 +54,8 @@ public class Debt {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (status == null) {
-            status = DebtStatus.PENDING;
-        }
-        if (remainingAmount == null) {
-            remainingAmount = amount;
-        }
+        if (status == null) status = DebtStatus.PENDING;
+        if (remainingAmount == null) remainingAmount = amount;
     }
 
     @PreUpdate
@@ -67,6 +63,41 @@ public class Debt {
         updatedAt = LocalDateTime.now();
         if (remainingAmount == null) {
             remainingAmount = amount.subtract(paidAmount != null ? paidAmount : BigDecimal.ZERO);
+        }
+    }
+    
+    public enum DebtStatus {
+        PENDING("Chờ thanh toán"),
+        PARTIAL("Thanh toán một phần"),
+        PAID("Đã thanh toán"),
+        OVERDUE("Quá hạn"),
+        CANCELLED("Đã hủy");
+
+        private final String displayName;
+
+        DebtStatus(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
+    public enum DebtType {
+        CUSTOMER_DEBT("Công nợ khách hàng"),
+        SHIPPER_DEBT("Công nợ shipper"),
+        PARTNER_DEBT("Công nợ đối tác"),
+        SUPPLIER_DEBT("Công nợ nhà cung cấp");
+
+        private final String displayName;
+
+        DebtType(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
         }
     }
 }

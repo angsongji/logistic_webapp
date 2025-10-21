@@ -48,13 +48,46 @@ public class Partner {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (status == null) {
-            status = PartnerStatus.ACTIVE;
-        }
+        if (status == null) status = PartnerStatus.ACTIVE;
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public enum PartnerStatus {
+        ACTIVE("Hoạt động"),
+        INACTIVE("Không hoạt động"),
+        SUSPENDED("Tạm dừng"),
+        TERMINATED("Chấm dứt");
+
+        private final String displayName;
+
+        PartnerStatus(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
+    public enum PartnerType {
+        SHIPPING_PARTNER("Đối tác vận chuyển"),
+        SUPPLIER("Nhà cung cấp"),
+        BANK("Ngân hàng"),
+        INSURANCE("Bảo hiểm"),
+        OTHER("Khác");
+
+        private final String displayName;
+
+        PartnerType(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 }

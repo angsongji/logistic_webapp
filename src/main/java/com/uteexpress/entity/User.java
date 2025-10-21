@@ -35,13 +35,12 @@ public class User {
     @Column(name = "is_active")
     private Boolean isActive;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-        name = "user_roles",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles = new HashSet<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    @Builder.Default
+    private Set<RoleType> roles = new HashSet<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -52,11 +51,19 @@ public class User {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        isActive = true;
+        if (isActive == null) isActive = true;
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+    
+    public enum RoleType {
+        ROLE_ADMIN,
+        ROLE_WAREHOUSE_STAFF,
+        ROLE_SHIPPER,
+        ROLE_CUSTOMER,
+        ROLE_ACCOUNTANT
     }
 }

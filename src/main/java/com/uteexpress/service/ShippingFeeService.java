@@ -1,6 +1,6 @@
 package com.uteexpress.service;
 
-import com.uteexpress.entity.ServiceType;
+import com.uteexpress.entity.Order;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -15,7 +15,7 @@ public class ShippingFeeService {
     // Phí cơ bản tối thiểu
     private static final BigDecimal MINIMUM_FEE = new BigDecimal("15000");
 
-    public BigDecimal calculateShippingFee(String fromAddress, String toAddress, ServiceType serviceType) {
+    public BigDecimal calculateShippingFee(String fromAddress, String toAddress, Order.ServiceType serviceType) {
         // Tính khoảng cách dựa trên địa chỉ (simplified)
         double distance = calculateDistance(fromAddress, toAddress);
         

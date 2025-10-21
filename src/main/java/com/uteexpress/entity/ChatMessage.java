@@ -38,8 +38,7 @@ public class ChatMessage {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (isRead == null) {
-            isRead = false;
-        }
+        if (isRead == null) isRead = false;
+        if (isFromCustomer == null) isFromCustomer = false;
     }
 }

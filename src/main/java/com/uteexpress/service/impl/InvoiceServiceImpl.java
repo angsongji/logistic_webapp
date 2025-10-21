@@ -2,7 +2,6 @@ package com.uteexpress.service.impl;
 
 import com.uteexpress.dto.accountant.InvoiceDto;
 import com.uteexpress.entity.Invoice;
-import com.uteexpress.entity.InvoiceStatus;
 import com.uteexpress.repository.InvoiceRepository;
 import com.uteexpress.service.accountant.InvoiceService;
 import org.springframework.stereotype.Service;
@@ -32,7 +31,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
-    public List<Invoice> getInvoicesByStatus(InvoiceStatus status) {
+    public List<Invoice> getInvoicesByStatus(Invoice.InvoiceStatus status) {
         return invoiceRepository.findByStatusOrderByIssuedDateDesc(status);
     }
 
@@ -42,7 +41,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
-    public Invoice updateInvoiceStatus(Long invoiceId, InvoiceStatus status) {
+    public Invoice updateInvoiceStatus(Long invoiceId, Invoice.InvoiceStatus status) {
         Invoice invoice = invoiceRepository.findById(invoiceId).orElse(null);
         if (invoice != null) {
             invoice.setStatus(status);
@@ -57,7 +56,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
-    public Double getTotalRevenueByStatus(InvoiceStatus status) {
+    public Double getTotalRevenueByStatus(Invoice.InvoiceStatus status) {
         return invoiceRepository.getTotalAmountByStatus(status);
     }
 
