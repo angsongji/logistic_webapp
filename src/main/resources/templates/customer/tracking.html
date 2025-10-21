@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/header :: *"></th:block>
+
+<div class="container">
+    <h3 class="mb-3">🔎 Theo dõi đơn hàng</h3>
+
+    <div class="row g-2 mb-3">
+        <div class="col-auto">
+            <input id="orderCode" class="form-control" placeholder="Nhập mã đơn hàng" />
+        </div>
+        <div class="col-auto">
+            <button id="btnTrack" class="btn btn-primary">Xem trạng thái</button>
+        </div>
+    </div>
+
+    <div id="result" class="card d-none">
+        <div class="card-body">
+            <div class="mb-2"><b>Mã đơn:</b> <span id="resCode"></span></div>
+            <div class="mb-2"><b>Trạng thái:</b> <span id="resStatus" class="badge bg-info"></span></div>
+            <div class="mb-2"><b>Người nhận:</b> <span id="resRecipient"></span></div>
+            <div class="mb-2"><b>Ngày tạo:</b> <span id="resCreated"></span></div>
+            <div id="resImageWrap" class="mt-3 d-none">
+                <img id="resImage" src="" alt="Hình ảnh đơn hàng" class="img-fluid rounded border" />
+            </div>
+        </div>
+    </div>
+
+    <div id="alert" class="alert alert-warning d-none mt-3"></div>
+</div>
+
+<script>
+    document.getElementById('btnTrack').addEventListener('click', async () => {
+        const code = document.getElementById('orderCode').value?.trim();
+        const alertBox = document.getElementById('alert');
+        const result = document.getElementById('result');
+        if (!code) {
+            alertBox.textContent = 'Vui lòng nhập mã đơn hàng';
+            alertBox.classList.remove('d-none');
+            result.classList.add('d-none');
+            return;
+        }
+
+        try {
+            alertBox.classList.add('d-none');
+            const token = localStorage.getItem('jwt');
+            const res = await fetch(`/api/customer/orders/${code}/tracking`, {
+                headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+            });
+            if (!res.ok) throw new Error('Không tìm thấy đơn hàng');
+            const o = await res.json();
+            document.getElementById('resCode').textContent = o.orderCode || code;
+            document.getElementById('resStatus').textContent = o.status || 'N/A';
+            document.getElementById('resRecipient').textContent = o.recipientName || '';
+            document.getElementById('resCreated').textContent = (o.createdAt || '').replace('T', ' ');
+            if (o.imageUrl) {
+                document.getElementById('resImage').src = o.imageUrl;
+                document.getElementById('resImageWrap').classList.remove('d-none');
+            } else {
+                document.getElementById('resImageWrap').classList.add('d-none');
+            }
+            result.classList.remove('d-none');
+        } catch (e) {
+            alertBox.textContent = e.message || 'Lỗi khi truy vấn trạng thái đơn hàng';
+            alertBox.classList.remove('d-none');
+            result.classList.add('d-none');
+        }
+    });
+</script>
+
+<th:block th:replace="fragments/footer :: *"></th:block>
+</html>
+
+

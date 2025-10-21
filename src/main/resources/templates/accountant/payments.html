@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/header :: *"></th:block>
+
+<h3 class="mb-3">💳 Danh sách thanh toán</h3>
+
+<table class="table table-hover">
+    <thead>
+    <tr class="table-primary text-center">
+        <th>ID</th>
+        <th>Đơn hàng</th>
+        <th>Số tiền</th>
+        <th>Phương thức</th>
+        <th>Trạng thái</th>
+        <th>Thao tác</th>
+    </tr>
+    </thead>
+    <tbody id="payments-table"></tbody>
+</table>
+
+<script>
+    const token = localStorage.getItem('jwt');
+
+    async function loadPayments() {
+        const res = await fetch('/api/accountant/payments', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const tbody = document.getElementById('payments-table');
+        tbody.innerHTML = data.map(p =>
+            `<tr>
+                <td>${p.id}</td>
+                <td>${p.orderId}</td>
+                <td>${p.amount}</td>
+                <td>${p.method}</td>
+                <td>${p.status}</td>
+                <td>
+                    <button class='btn btn-success btn-sm' onclick='confirm(${p.id})'>✔</button>
+                    <button class='btn btn-danger btn-sm' onclick='refund(${p.id})'>↩</button>
+                </td>
+            </tr>`).join('');
+    }
+
+    async function confirm(id) {
+        await fetch(`/api/accountant/payments/${id}/confirm`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        alert('Đã xác nhận thanh toán');
+        loadPayments();
+    }
+
+    async function refund(id) {
+        await fetch(`/api/accountant/payments/${id}/refund`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        alert('Đã hoàn tiền');
+        loadPayments();
+    }
+
+    loadPayments();
+</script>
+
+<th:block th:replace="fragments/footer :: *"></th:block>
+</html>

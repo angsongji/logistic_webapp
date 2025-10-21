@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/header :: *"></th:block>
+
+<h3 class="mb-3">📦 Danh sách đơn hàng của bạn</h3>
+
+<table class="table table-bordered table-striped">
+    <thead>
+    <tr class="table-primary text-center">
+        <th>Mã đơn</th>
+        <th>Trạng thái</th>
+        <th>Tổng tiền</th>
+        <th>Ngày tạo</th>
+    </tr>
+    </thead>
+    <tbody id="orders-table">
+    </tbody>
+</table>
+
+<div class="d-flex gap-2">
+    <a href="/web/customer/orders/new" class="btn btn-success">Tạo đơn hàng mới</a>
+    <a href="/web/customer/tracking" class="btn btn-primary">Theo dõi đơn hàng</a>
+  </div>
+
+<script>
+    async function loadOrders() {
+        const token = localStorage.getItem('jwt');
+        const res = await fetch('/api/customer/orders', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const tbody = document.getElementById('orders-table');
+        tbody.innerHTML = data.map(o =>
+            `<tr>
+                <td>${o.id}</td>
+                <td>${o.status}</td>
+                <td>${o.totalAmount}</td>
+                <td>${o.createdAt?.replace('T',' ')}</td>
+            </tr>`).join('');
+    }
+    loadOrders();
+</script>
+
+<th:block th:replace="fragments/footer :: *"></th:block>
+</html>

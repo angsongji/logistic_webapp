@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý địa chỉ - UTEExpress</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h3>📍 Quản lý địa chỉ</h3>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5>Danh sách địa chỉ</h5>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addressModal">
+                            Thêm địa chỉ mới
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="addressesList">
+                            <!-- Addresses will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Address Modal -->
+    <div class="modal fade" id="addressModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm/Sửa địa chỉ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addressForm">
+                        <input type="hidden" id="addressId">
+                        <div class="mb-3">
+                            <label class="form-label">Tên người nhận</label>
+                            <input type="text" class="form-control" id="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="tel" class="form-control" id="phone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Địa chỉ chi tiết</label>
+                            <textarea class="form-control" id="address" rows="3" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Tỉnh/Thành phố</label>
+                                    <input type="text" class="form-control" id="city">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Quận/Huyện</label>
+                                    <input type="text" class="form-control" id="district">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Phường/Xã</label>
+                                    <input type="text" class="form-control" id="ward">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mã bưu điện</label>
+                            <input type="text" class="form-control" id="postalCode">
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="isDefault">
+                            <label class="form-check-label" for="isDefault">
+                                Đặt làm địa chỉ mặc định
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAddress()">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let addresses = [];
+        let editingAddressId = null;
+
+        async function loadAddresses() {
+            try {
+                const token = localStorage.getItem('jwt');
+                const response = await fetch('/api/customer/addresses', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                addresses = await response.json();
+                renderAddresses();
+            } catch (error) {
+                console.error('Error loading addresses:', error);
+            }
+        }
+
+        function renderAddresses() {
+            const container = document.getElementById('addressesList');
+            if (addresses.length === 0) {
+                container.innerHTML = '<p class="text-muted">Chưa có địa chỉ nào. Hãy thêm địa chỉ đầu tiên!</p>';
+                return;
+            }
+
+            container.innerHTML = addresses.map(addr => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6>${addr.name} ${addr.isDefault ? '<span class="badge bg-primary">Mặc định</span>' : ''}</h6>
+                                <p class="mb-1">${addr.phone}</p>
+                                <p class="mb-1">${addr.address}</p>
+                                <small class="text-muted">${addr.city}, ${addr.district}, ${addr.ward}</small>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editAddress(${addr.id})">Sửa</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteAddress(${addr.id})">Xóa</button>
+                                ${!addr.isDefault ? `<button class="btn btn-sm btn-outline-success" onclick="setDefault(${addr.id})">Đặt mặc định</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function editAddress(id) {
+            const address = addresses.find(addr => addr.id === id);
+            if (address) {
+                editingAddressId = id;
+                document.getElementById('addressId').value = address.id;
+                document.getElementById('name').value = address.name;
+                document.getElementById('phone').value = address.phone;
+                document.getElementById('address').value = address.address;
+                document.getElementById('city').value = address.city || '';
+                document.getElementById('district').value = address.district || '';
+                document.getElementById('ward').value = address.ward || '';
+                document.getElementById('postalCode').value = address.postalCode || '';
+                document.getElementById('isDefault').checked = address.isDefault;
+                
+                const modal = new bootstrap.Modal(document.getElementById('addressModal'));
+                modal.show();
+            }
+        }
+
+        async function saveAddress() {
+            const formData = {
+                name: document.getElementById('name').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                city: document.getElementById('city').value,
+                district: document.getElementById('district').value,
+                ward: document.getElementById('ward').value,
+                postalCode: document.getElementById('postalCode').value,
+                isDefault: document.getElementById('isDefault').checked
+            };
+
+            try {
+                const token = localStorage.getItem('jwt');
+                const url = editingAddressId ? 
+                    `/api/customer/addresses/${editingAddressId}` : 
+                    '/api/customer/addresses';
+                const method = editingAddressId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    await loadAddresses();
+                    bootstrap.Modal.getInstance(document.getElementById('addressModal')).hide();
+                    editingAddressId = null;
+                    document.getElementById('addressForm').reset();
+                } else {
+                    alert('Lỗi khi lưu địa chỉ');
+                }
+            } catch (error) {
+                console.error('Error saving address:', error);
+                alert('Lỗi khi lưu địa chỉ');
+            }
+        }
+
+        async function deleteAddress(id) {
+            if (confirm('Bạn có chắc muốn xóa địa chỉ này?')) {
+                try {
+                    const token = localStorage.getItem('jwt');
+                    const response = await fetch(`/api/customer/addresses/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+
+                    if (response.ok) {
+                        await loadAddresses();
+                    } else {
+                        alert('Lỗi khi xóa địa chỉ');
+                    }
+                } catch (error) {
+                    console.error('Error deleting address:', error);
+                    alert('Lỗi khi xóa địa chỉ');
+                }
+            }
+        }
+
+        async function setDefault(id) {
+            try {
+                const token = localStorage.getItem('jwt');
+                const response = await fetch(`/api/customer/addresses/${id}/set-default`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (response.ok) {
+                    await loadAddresses();
+                } else {
+                    alert('Lỗi khi đặt địa chỉ mặc định');
+                }
+            } catch (error) {
+                console.error('Error setting default address:', error);
+                alert('Lỗi khi đặt địa chỉ mặc định');
+            }
+        }
+
+        // Load addresses on page load
+        loadAddresses();
+    </script>
+</body>
+</html>
