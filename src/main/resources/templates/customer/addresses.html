@@ -5,7 +5,7 @@
 
 <nav th:replace="fragments/header :: navbar"></nav>
 
-<div class="container mt-4">
+<div id="page-content" class="container mt-4">
         <h3>📍 Quản lý địa chỉ</h3>
         
         <div class="row">
@@ -97,9 +97,8 @@
 
         async function loadAddresses() {
             try {
-                const token = localStorage.getItem('jwt');
                 const response = await fetch('/api/customer/addresses', {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    credentials: 'include'
                 });
                 addresses = await response.json();
                 renderAddresses();
@@ -168,7 +167,6 @@
             };
 
             try {
-                const token = localStorage.getItem('jwt');
                 const url = editingAddressId ? 
                     `/api/customer/addresses/${editingAddressId}` : 
                     '/api/customer/addresses';
@@ -177,9 +175,9 @@
                 const response = await fetch(url, {
                     method: method,
                     headers: {
-                        'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify(formData)
                 });
 
@@ -200,10 +198,9 @@
         async function deleteAddress(id) {
             if (confirm('Bạn có chắc muốn xóa địa chỉ này?')) {
                 try {
-                    const token = localStorage.getItem('jwt');
                     const response = await fetch(`/api/customer/addresses/${id}`, {
                         method: 'DELETE',
-                        headers: { 'Authorization': 'Bearer ' + token }
+                        credentials: 'include'
                     });
 
                     if (response.ok) {
@@ -220,10 +217,9 @@
 
         async function setDefault(id) {
             try {
-                const token = localStorage.getItem('jwt');
                 const response = await fetch(`/api/customer/addresses/${id}/set-default`, {
                     method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    credentials: 'include'
                 });
 
                 if (response.ok) {

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="fragments/header :: head"></head>
+  <body class="bg-light">
+    <nav th:replace="fragments/header :: navbar"></nav>
+
+    <div id="page-content" class="container mt-4">
+      <h3 class="mb-3">🧾 Quản lý hóa đơn</h3>
+
+      <table class="table table-hover">
+        <thead>
+          <tr class="table-primary text-center">
+            <th>ID</th>
+            <th>Số hóa đơn</th>
+            <th>Đơn hàng</th>
+            <th>Tổng tiền</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="invoices-table"></tbody>
+      </table>
+
+      <script>
+        async function loadInvoices() {
+          const res = await fetch("/api/accountant/invoices", {
+            credentials: "include",
+          });
+          if (!res.ok) {
+            document.getElementById("invoices-table").innerHTML =
+              '<tr><td colspan="6">Không thể tải dữ liệu hóa đơn</td></tr>';
+            return;
+          }
+          const data = await res.json();
+          const tbody = document.getElementById("invoices-table");
+          tbody.innerHTML = data
+            .map(
+              (inv) =>
+                `<tr>
+                    <td>${inv.id}</td>
+                    <td>${inv.invoiceNumber}</td>
+                    <td>${inv.orderId || ""}</td>
+                    <td>${inv.totalAmount || 0}</td>
+                    <td>${inv.status}</td>
+                    <td>
+                        <button class='btn btn-primary btn-sm' onclick='view(${
+                          inv.id
+                        })'>Xem</button>
+                    </td>
+                </tr>`
+            )
+            .join("");
+        }
+
+        function view(id) {
+          // simple navigation to invoice detail if exists
+          window.location.href = `/web/accountant/invoices/${id}`;
+        }
+
+        loadInvoices();
+      </script>
+    </div>
+
+    <footer th:replace="fragments/footer :: footer"></footer>
+  </body>
+</html>

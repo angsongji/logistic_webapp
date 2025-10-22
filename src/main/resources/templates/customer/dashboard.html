@@ -5,25 +5,32 @@
 
 <nav th:replace="fragments/header :: navbar"></nav>
 
-<div class="container mt-4">
-    <h3 class="mb-3">📦 Danh sách đơn hàng của bạn</h3>
+<div class="container-fluid mt-4 w-100">
+    <div class="row">
+        <aside class="col-12 col-md-3 col-lg-2 mb-3">
+            <div th:replace="fragments/sidebar_customer :: sidebar-customer"></div>
+        </aside>
+        <main id="page-content" class="col-12 col-md-9 col-lg-10">
+            <h3 class="mb-3">📦 Danh sách đơn hàng của bạn</h3>
 
-    <table class="table table-bordered table-striped">
-        <thead>
-        <tr class="table-primary text-center">
-            <th>Mã đơn</th>
-            <th>Trạng thái</th>
-            <th>Tổng tiền</th>
-            <th>Ngày tạo</th>
-        </tr>
-        </thead>
-        <tbody id="orders-table">
-        </tbody>
-    </table>
+            <table class="table table-bordered table-striped">
+                <thead>
+                <tr class="table-primary text-center">
+                    <th>Mã đơn</th>
+                    <th>Trạng thái</th>
+                    <th>Tổng tiền</th>
+                    <th>Ngày tạo</th>
+                </tr>
+                </thead>
+                <tbody id="orders-table">
+                </tbody>
+            </table>
 
-    <div class="d-flex gap-2">
-        <a href="/web/customer/orders/new" class="btn btn-success">Tạo đơn hàng mới</a>
-        <a href="/web/customer/tracking" class="btn btn-primary">Theo dõi đơn hàng</a>
+            <div class="d-flex gap-2">
+                <a href="/web/customer/orders/new" class="btn btn-success">Tạo đơn hàng mới</a>
+                <a href="/web/customer/tracking" class="btn btn-primary">Theo dõi đơn hàng</a>
+            </div>
+        </main>
     </div>
 </div>
 

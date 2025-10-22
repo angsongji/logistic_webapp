@@ -7,6 +7,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class CustomerWebController {
 
+    @GetMapping("/web/customer")
+    public String customerShell(Model model) {
+        model.addAttribute("title", "Khu vực khách hàng");
+        return "customer/index";
+    }
+
     @GetMapping("/web/customer/dashboard")
     public String customerDashboard(Model model) {
         model.addAttribute("title", "Dashboard Khách hàng");
@@ -41,5 +47,15 @@ public class CustomerWebController {
     public String trackingPage(Model model) {
         model.addAttribute("title", "Theo dõi đơn hàng");
         return "customer/tracking";
+    }
+
+    @GetMapping("/web/customer/profile")
+    public String profilePage(Model model, @org.springframework.web.bind.annotation.RequestHeader(value = "HX-Request", required = false) String hxRequest) {
+        model.addAttribute("title", "Tài khoản của tôi");
+        // If request comes from HTMX, return only the fragment to be inserted into the page
+        if (hxRequest != null && hxRequest.equalsIgnoreCase("true")) {
+            return "customer/profile :: profile-content";
+        }
+        return "customer/profile";
     }
 }

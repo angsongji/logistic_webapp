@@ -5,7 +5,7 @@
 
 <nav th:replace="fragments/header :: navbar"></nav>
 
-<div class="container mt-4">
+<div id="page-content" class="container mt-4">
     <h3 class="mb-3">📝 Tạo đơn hàng mới</h3>
 
 <form id="orderForm" enctype="multipart/form-data" class="p-3 border rounded bg-white">
@@ -75,11 +75,10 @@
     
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('jwt');
         const formData = new FormData(form);
         const res = await fetch('/api/customer/orders', {
             method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + token },
+            credentials: 'include',
             body: formData
         });
         if (res.ok) {

@@ -7,6 +7,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class AccountantWebController {
 
+    @GetMapping("/web/accountant")
+    public String accountantShell(Model model) {
+        model.addAttribute("title", "Khu vực kế toán");
+        return "accountant/index";
+    }
+
     @GetMapping("/web/accountant/dashboard")
     public String accountantDashboard(Model model) {
         model.addAttribute("title", "Dashboard Kế toán");

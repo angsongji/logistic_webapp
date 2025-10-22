@@ -5,7 +5,7 @@
 
 <nav th:replace="fragments/header :: navbar"></nav>
 
-<div class="container mt-4">
+<div id="page-content" class="container mt-4">
     <h3 class="mb-3">💳 Danh sách thanh toán</h3>
 
 <table class="table table-hover">
@@ -23,11 +23,9 @@
 </table>
 
 <script>
-    const token = localStorage.getItem('jwt');
-
     async function loadPayments() {
         const res = await fetch('/api/accountant/payments', {
-            headers: { 'Authorization': 'Bearer ' + token }
+            credentials: 'include'
         });
         const data = await res.json();
         const tbody = document.getElementById('payments-table');
@@ -48,7 +46,7 @@
     async function confirm(id) {
         await fetch(`/api/accountant/payments/${id}/confirm`, {
             method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + token }
+            credentials: 'include'
         });
         alert('Đã xác nhận thanh toán');
         loadPayments();
@@ -57,7 +55,7 @@
     async function refund(id) {
         await fetch(`/api/accountant/payments/${id}/refund`, {
             method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + token }
+            credentials: 'include'
         });
         alert('Đã hoàn tiền');
         loadPayments();
