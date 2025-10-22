@@ -3,7 +3,6 @@ package com.uteexpress.service.impl;
 import com.uteexpress.dto.customer.OrderRequestDto;
 import com.uteexpress.dto.customer.OrderResponseDto;
 import com.uteexpress.entity.Order;
-import com.uteexpress.entity.OrderItem;
 import com.uteexpress.entity.User;
 import com.uteexpress.mapper.OrderMapper;
 import com.uteexpress.repository.OrderItemRepository;
@@ -13,8 +12,6 @@ import com.uteexpress.service.ShippingFeeService;
 import com.uteexpress.service.customer.OrderService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
