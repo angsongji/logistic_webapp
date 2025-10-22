@@ -46,13 +46,20 @@ public class AuthController {
             String token = result.get("token");
             String role = result.get("role");
             
-            // Set JWT token as HTTP-only cookie
+            // Set JWT token as HTTP-only cookie (secure)
             Cookie jwtCookie = new Cookie("jwt_token", token);
-            jwtCookie.setHttpOnly(true);
+            jwtCookie.setHttpOnly(true); // Keep secure
             jwtCookie.setSecure(false); // Set true for HTTPS
             jwtCookie.setPath("/");
             jwtCookie.setMaxAge(24 * 60 * 60); // 24 hours
             response.addCookie(jwtCookie);
+            
+            // Set authentication status cookie for frontend
+            Cookie authCookie = new Cookie("is_authenticated", "true");
+            authCookie.setHttpOnly(false); // Allow frontend to read
+            authCookie.setPath("/");
+            authCookie.setMaxAge(24 * 60 * 60);
+            response.addCookie(authCookie);
             
             // Set role cookie for frontend display
             Cookie roleCookie = new Cookie("user_role", role);
@@ -75,20 +82,58 @@ public class AuthController {
 
     @GetMapping("/logout")
     public String logout(HttpServletResponse response) {
-        // Clear JWT cookie
-        Cookie jwtCookie = new Cookie("jwt_token", null);
-        jwtCookie.setHttpOnly(true);
-        jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(0); // Expire immediately
-        response.addCookie(jwtCookie);
-        
-        // Clear role cookie
-        Cookie roleCookie = new Cookie("user_role", null);
-        roleCookie.setPath("/");
-        roleCookie.setMaxAge(0);
-        response.addCookie(roleCookie);
+        // Clear JWT cookie with multiple attempts
+        clearCookie(response, "jwt_token", true);
+        clearCookie(response, "is_authenticated", false);
+        clearCookie(response, "user_role", false);
         
         return "redirect:/auth/login";
+    }
+    
+    @GetMapping("/logout/clear-cookies")
+    public String clearCookies(HttpServletResponse response) {
+        // Force clear all cookies with different combinations
+        clearCookie(response, "jwt_token", true);
+        clearCookie(response, "is_authenticated", false);
+        clearCookie(response, "user_role", false);
+        
+        // Additional attempts with different paths
+        clearCookieWithPath(response, "jwt_token", true, "/");
+        clearCookieWithPath(response, "jwt_token", true, "/auth");
+        clearCookieWithPath(response, "is_authenticated", false, "/");
+        clearCookieWithPath(response, "user_role", false, "/");
+        
+        return "redirect:/auth/login";
+    }
+    
+    private void clearCookie(HttpServletResponse response, String cookieName, boolean httpOnly) {
+        // For HTTP-only cookies, we need to set them with the same attributes as when they were created
+        Cookie cookie = new Cookie(cookieName, "");
+        cookie.setHttpOnly(httpOnly);
+        cookie.setPath("/");
+        cookie.setMaxAge(0); // Expire immediately
+        response.addCookie(cookie);
+        
+        // Also try with null value
+        Cookie cookieNull = new Cookie(cookieName, null);
+        cookieNull.setHttpOnly(httpOnly);
+        cookieNull.setPath("/");
+        cookieNull.setMaxAge(0);
+        response.addCookie(cookieNull);
+    }
+    
+    private void clearCookieWithPath(HttpServletResponse response, String cookieName, boolean httpOnly, String path) {
+        Cookie cookie = new Cookie(cookieName, "");
+        cookie.setHttpOnly(httpOnly);
+        cookie.setPath(path);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        
+        Cookie cookieNull = new Cookie(cookieName, null);
+        cookieNull.setHttpOnly(httpOnly);
+        cookieNull.setPath(path);
+        cookieNull.setMaxAge(0);
+        response.addCookie(cookieNull);
     }
     
     private String getRedirectUrlByRole(String role) {

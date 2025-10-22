@@ -15,7 +15,7 @@ public class CustomerWebController {
 
     @GetMapping("/web/customer/dashboard")
     public String customerDashboard(Model model) {
-        model.addAttribute("title", "Dashboard Khách hàng");
+        model.addAttribute("title", "Khách hàng");
         return "customer/dashboard";
     }
 
@@ -46,6 +46,24 @@ public class CustomerWebController {
     @GetMapping("/web/customer/tracking")
     public String trackingPage(Model model) {
         model.addAttribute("title", "Theo dõi đơn hàng");
-        return "customer/tracking";
+        return "customer/tracking";                                                                                                              
+    }
+
+    @GetMapping("/web/customer/profile")
+    public String profilePage(Model model) {
+        model.addAttribute("title", "Thông tin cá nhân");
+        return "customer/profile";
+    }
+
+    @GetMapping("/web/customer/bank")
+    public String bankPage(Model model) {
+        model.addAttribute("title", "Thông tin ngân hàng");
+        return "customer/bank";
+    }
+
+    @GetMapping("/web/customer/password")
+    public String passwordPage(Model model) {
+        model.addAttribute("title", "Đổi mật khẩu");
+        return "customer/password";
     }
 }
