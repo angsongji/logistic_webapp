@@ -1,45 +1,60 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<th:block th:replace="fragments/header :: *"></th:block>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body class="bg-light">
 
-<h3 class="mb-3">📦 Danh sách đơn hàng của bạn</h3>
+<nav th:replace="fragments/header :: navbar"></nav>
 
-<table class="table table-bordered table-striped">
-    <thead>
-    <tr class="table-primary text-center">
-        <th>Mã đơn</th>
-        <th>Trạng thái</th>
-        <th>Tổng tiền</th>
-        <th>Ngày tạo</th>
-    </tr>
-    </thead>
-    <tbody id="orders-table">
-    </tbody>
-</table>
+<div class="container mt-4">
+    <h3 class="mb-3">📦 Danh sách đơn hàng của bạn</h3>
 
-<div class="d-flex gap-2">
-    <a href="/web/customer/orders/new" class="btn btn-success">Tạo đơn hàng mới</a>
-    <a href="/web/customer/tracking" class="btn btn-primary">Theo dõi đơn hàng</a>
-  </div>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr class="table-primary text-center">
+            <th>Mã đơn</th>
+            <th>Trạng thái</th>
+            <th>Tổng tiền</th>
+            <th>Ngày tạo</th>
+        </tr>
+        </thead>
+        <tbody id="orders-table">
+        </tbody>
+    </table>
+
+    <div class="d-flex gap-2">
+        <a href="/web/customer/orders/new" class="btn btn-success">Tạo đơn hàng mới</a>
+        <a href="/web/customer/tracking" class="btn btn-primary">Theo dõi đơn hàng</a>
+    </div>
+</div>
+
+<footer th:replace="fragments/footer :: footer"></footer>
 
 <script>
     async function loadOrders() {
-        // JWT token is automatically sent via HTTP-only cookie
-        const res = await fetch('/api/customer/orders', {
-            credentials: 'include' // Include cookies in request
-        });
-        const data = await res.json();
-        const tbody = document.getElementById('orders-table');
-        tbody.innerHTML = data.map(o =>
-            `<tr>
-                <td>${o.id}</td>
-                <td>${o.status}</td>
-                <td>${o.totalAmount}</td>
-                <td>${o.createdAt?.replace('T',' ')}</td>
-            </tr>`).join('');
+        try {
+            const res = await fetch('/api/customer/orders', {
+                credentials: 'include'
+            });
+            if (!res.ok) {
+                throw new Error('Failed to load orders');
+            }
+            const data = await res.json();
+            const tbody = document.getElementById('orders-table');
+            tbody.innerHTML = data.map(o =>
+                `<tr>
+                    <td>${o.id}</td>
+                    <td>${o.status}</td>
+                    <td>${o.totalAmount.toLocaleString('vi-VN')} ₫</td>
+                    <td>${new Date(o.createdAt).toLocaleString('vi-VN')}</td>
+                </tr>`).join('');
+        } catch (error) {
+            console.error('Error loading orders:', error);
+            document.getElementById('orders-table').innerHTML = 
+                '<tr><td colspan="4" class="text-center text-muted">Không có đơn hàng nào</td></tr>';
+        }
     }
     loadOrders();
 </script>
 
-<th:block th:replace="fragments/footer :: *"></th:block>
+</body>
 </html>

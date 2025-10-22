@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<th:block th:replace="fragments/header :: *"></th:block>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body class="bg-light">
 
-<h3 class="mb-3">💳 Danh sách thanh toán</h3>
+<nav th:replace="fragments/header :: navbar"></nav>
+
+<div class="container mt-4">
+    <h3 class="mb-3">💳 Danh sách thanh toán</h3>
 
 <table class="table table-hover">
     <thead>
@@ -62,5 +66,9 @@
     loadPayments();
 </script>
 
-<th:block th:replace="fragments/footer :: *"></th:block>
+</div>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+
+</body>
 </html>
