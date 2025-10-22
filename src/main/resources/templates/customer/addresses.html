@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý địa chỉ - UTEExpress</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container mt-4">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body class="bg-light">
+
+<nav th:replace="fragments/header :: navbar"></nav>
+
+<div class="container mt-4">
         <h3>📍 Quản lý địa chỉ</h3>
         
         <div class="row">
@@ -242,5 +240,9 @@
         // Load addresses on page load
         loadAddresses();
     </script>
+</div>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+
 </body>
 </html>

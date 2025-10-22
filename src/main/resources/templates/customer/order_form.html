@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<th:block th:replace="fragments/header :: *"></th:block>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body class="bg-light">
 
-<h3 class="mb-3">📝 Tạo đơn hàng mới</h3>
+<nav th:replace="fragments/header :: navbar"></nav>
+
+<div class="container mt-4">
+    <h3 class="mb-3">📝 Tạo đơn hàng mới</h3>
 
 <form id="orderForm" enctype="multipart/form-data" class="p-3 border rounded bg-white">
     <div class="mb-2">
@@ -87,5 +91,9 @@
     });
 </script>
 
-<th:block th:replace="fragments/footer :: *"></th:block>
+</div>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+
+</body>
 </html>

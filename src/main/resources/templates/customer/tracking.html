@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<th:block th:replace="fragments/header :: *"></th:block>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body class="bg-light">
 
-<div class="container">
+<nav th:replace="fragments/header :: navbar"></nav>
+
+<div class="container mt-4">
     <h3 class="mb-3">🔎 Theo dõi đơn hàng</h3>
 
     <div class="row g-2 mb-3">
@@ -68,7 +71,9 @@
     });
 </script>
 
-<th:block th:replace="fragments/footer :: *"></th:block>
+</div>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+
+</body>
 </html>
-
-
