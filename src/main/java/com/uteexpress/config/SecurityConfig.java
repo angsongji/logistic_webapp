@@ -17,11 +17,9 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/auth/**", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                    .requestMatchers("/web/customer/**").hasRole("CUSTOMER")
+                    .requestMatchers("/web/accountant/**").hasRole("ACCOUNTANT")
                     .anyRequest().authenticated())
-            .formLogin(form -> form
-                    .loginPage("/auth/login")
-                    .defaultSuccessUrl("/web/customer/dashboard", true)
-                    .permitAll())
             .logout(logout -> logout.permitAll());
         return http.build();
     }
