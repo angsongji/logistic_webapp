@@ -1,98 +1,140 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: head"></head>
-<body class="bg-light">
+  <head th:replace="fragments/header :: head"></head>
+  <body class="bg-light">
+    <nav th:replace="fragments/header :: navbar"></nav>
 
-<nav th:replace="fragments/header :: navbar"></nav>
+    <!-- Profile & Password Modals -->
+    <div th:replace="fragments/header :: profile-modal"></div>
+    <div th:replace="fragments/header :: password-modal"></div>
 
-<div id="page-content" class="container mt-4">
-    <h3 class="mb-3">📝 Tạo đơn hàng mới</h3>
+    <div class="container mt-4">
+      <h3 class="mb-3">📝 Tạo đơn hàng mới</h3>
 
-<form id="orderForm" enctype="multipart/form-data" class="p-3 border rounded bg-white">
-    <div class="mb-2">
-        <label>Địa chỉ lấy hàng</label>
-        <input type="text" class="form-control" name="pickupAddress" required>
+          <form
+            id="orderForm"
+            enctype="multipart/form-data"
+            class="p-3 border rounded bg-white"
+          >
+            <div class="mb-2">
+              <label>Địa chỉ lấy hàng</label>
+              <input
+                type="text"
+                class="form-control"
+                name="pickupAddress"
+                required
+              />
+            </div>
+
+            <div class="mb-2">
+              <label>Địa chỉ giao hàng</label>
+              <input
+                type="text"
+                class="form-control"
+                name="deliveryAddress"
+                required
+              />
+            </div>
+
+            <div class="mb-2">
+              <label>Loại dịch vụ</label>
+              <select
+                class="form-control"
+                name="serviceType"
+                id="serviceType"
+                required
+              >
+                <option value="">Chọn loại dịch vụ</option>
+                <option value="CHUAN">Chuẩn (1.0x)</option>
+                <option value="NHANH">Nhanh (1.5x)</option>
+                <option value="TIET_KIEM">Tiết kiệm (0.8x)</option>
+              </select>
+            </div>
+
+            <div class="mb-2">
+              <label>Phí vận chuyển</label>
+              <input
+                type="number"
+                class="form-control"
+                name="shipmentFee"
+                id="shipmentFee"
+                readonly
+              />
+              <small class="text-muted"
+                >Phí sẽ được tính tự động dựa trên địa chỉ và loại dịch
+                vụ</small
+              >
+            </div>
+
+            <div class="mb-2">
+              <label>Ảnh minh chứng (tùy chọn)</label>
+              <input type="file" class="form-control" name="image" />
+            </div>
+
+            <button class="btn btn-primary">Tạo đơn hàng</button>
+          </form>
+
+          <script>
+            const form = document.getElementById("orderForm");
+            const serviceTypeSelect = document.getElementById("serviceType");
+            const shipmentFeeInput = document.getElementById("shipmentFee");
+
+            // Calculate shipping fee when service type or addresses change
+            function calculateShippingFee() {
+              const pickupAddress = form.querySelector(
+                'input[name="pickupAddress"]'
+              ).value;
+              const deliveryAddress = form.querySelector(
+                'input[name="deliveryAddress"]'
+              ).value;
+              const serviceType = serviceTypeSelect.value;
+
+              if (pickupAddress && deliveryAddress && serviceType) {
+                // In a real implementation, you would call an API to calculate the fee
+                // For now, we'll use a simple calculation
+                const baseFee = 15000;
+                const multipliers = {
+                  CHUAN: 1.0,
+                  NHANH: 1.5,
+                  TIET_KIEM: 0.8,
+                };
+
+                const calculatedFee = Math.round(
+                  baseFee * multipliers[serviceType]
+                );
+                shipmentFeeInput.value = calculatedFee;
+              }
+            }
+
+            serviceTypeSelect.addEventListener("change", calculateShippingFee);
+            form
+              .querySelector('input[name="pickupAddress"]')
+              .addEventListener("blur", calculateShippingFee);
+            form
+              .querySelector('input[name="deliveryAddress"]')
+              .addEventListener("blur", calculateShippingFee);
+
+            form.addEventListener("submit", async (e) => {
+              e.preventDefault();
+              const formData = new FormData(form);
+              const res = await fetch("/api/customer/orders", {
+                method: "POST",
+                credentials: "include",
+                body: formData,
+              });
+              if (res.ok) {
+                alert("Tạo đơn hàng thành công!");
+                window.location.href = "/web/customer/dashboard";
+              } else {
+                alert("Lỗi khi tạo đơn hàng!");
+              }
+             });
+           </script>
     </div>
 
-    <div class="mb-2">
-        <label>Địa chỉ giao hàng</label>
-        <input type="text" class="form-control" name="deliveryAddress" required>
-    </div>
+    <footer th:replace="fragments/footer :: footer"></footer>
 
-    <div class="mb-2">
-        <label>Loại dịch vụ</label>
-        <select class="form-control" name="serviceType" id="serviceType" required>
-            <option value="">Chọn loại dịch vụ</option>
-            <option value="CHUAN">Chuẩn (1.0x)</option>
-            <option value="NHANH">Nhanh (1.5x)</option>
-            <option value="TIET_KIEM">Tiết kiệm (0.8x)</option>
-        </select>
-    </div>
-
-    <div class="mb-2">
-        <label>Phí vận chuyển</label>
-        <input type="number" class="form-control" name="shipmentFee" id="shipmentFee" readonly>
-        <small class="text-muted">Phí sẽ được tính tự động dựa trên địa chỉ và loại dịch vụ</small>
-    </div>
-
-    <div class="mb-2">
-        <label>Ảnh minh chứng (tùy chọn)</label>
-        <input type="file" class="form-control" name="image">
-    </div>
-
-    <button class="btn btn-primary">Tạo đơn hàng</button>
-</form>
-
-<script>
-    const form = document.getElementById('orderForm');
-    const serviceTypeSelect = document.getElementById('serviceType');
-    const shipmentFeeInput = document.getElementById('shipmentFee');
-    
-    // Calculate shipping fee when service type or addresses change
-    function calculateShippingFee() {
-        const pickupAddress = form.querySelector('input[name="pickupAddress"]').value;
-        const deliveryAddress = form.querySelector('input[name="deliveryAddress"]').value;
-        const serviceType = serviceTypeSelect.value;
-        
-        if (pickupAddress && deliveryAddress && serviceType) {
-            // In a real implementation, you would call an API to calculate the fee
-            // For now, we'll use a simple calculation
-            const baseFee = 15000;
-            const multipliers = {
-                'CHUAN': 1.0,
-                'NHANH': 1.5,
-                'TIET_KIEM': 0.8
-            };
-            
-            const calculatedFee = Math.round(baseFee * multipliers[serviceType]);
-            shipmentFeeInput.value = calculatedFee;
-        }
-    }
-    
-    serviceTypeSelect.addEventListener('change', calculateShippingFee);
-    form.querySelector('input[name="pickupAddress"]').addEventListener('blur', calculateShippingFee);
-    form.querySelector('input[name="deliveryAddress"]').addEventListener('blur', calculateShippingFee);
-    
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const res = await fetch('/api/customer/orders', {
-            method: 'POST',
-            credentials: 'include',
-            body: formData
-        });
-        if (res.ok) {
-            alert("Tạo đơn hàng thành công!");
-            window.location.href = '/web/customer/dashboard';
-        } else {
-            alert("Lỗi khi tạo đơn hàng!");
-        }
-    });
-</script>
-
-</div>
-
-<footer th:replace="fragments/footer :: footer"></footer>
-
-</body>
+    <!-- Profile Script -->
+    <script th:replace="fragments/header :: profile-script"></script>
+  </body>
 </html>

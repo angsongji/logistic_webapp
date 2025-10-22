@@ -5,8 +5,12 @@
 
 <nav th:replace="fragments/header :: navbar"></nav>
 
-<div id="page-content" class="container mt-4">
-        <h3>📍 Quản lý địa chỉ</h3>
+<!-- Profile & Password Modals -->
+<div th:replace="fragments/header :: profile-modal"></div>
+<div th:replace="fragments/header :: password-modal"></div>
+
+<div class="container mt-4">
+    <h3>📍 Quản lý địa chỉ</h3>
         
         <div class="row">
             <div class="col-md-8">
@@ -239,6 +243,9 @@
 </div>
 
 <footer th:replace="fragments/footer :: footer"></footer>
+
+<!-- Profile Script -->
+<script th:replace="fragments/header :: profile-script"></script>
 
 </body>
 </html>
