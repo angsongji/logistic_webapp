@@ -30,15 +30,15 @@ public class InvoiceServiceImpl implements InvoiceService {
         return invoiceRepository.findAll();
     }
 
-    @Override
-    public List<Invoice> getInvoicesByStatus(Invoice.InvoiceStatus status) {
-        return invoiceRepository.findByStatusOrderByIssuedDateDesc(status);
-    }
+        @Override
+        public List<Invoice> getInvoicesByStatus(Invoice.InvoiceStatus status) {
+            return invoiceRepository.findByStatusOrderByIssueDateDesc(status);
+        }
 
-    @Override
-    public List<Invoice> getInvoicesByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        return invoiceRepository.findByIssuedDateBetween(startDate, endDate);
-    }
+        @Override
+        public List<Invoice> getInvoicesByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+            return invoiceRepository.findByIssueDateBetween(startDate, endDate);
+        }
 
     @Override
     public Invoice updateInvoiceStatus(Long invoiceId, Invoice.InvoiceStatus status) {

@@ -2,6 +2,42 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="fragments/header :: head"></head>
 <style th:replace="fragments/sidebar_accountant :: sidebar-styles"></style>
+<style>
+    .table td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+    
+    /* Beautiful Dashboard Cards */
+    .dashboard-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .card-gradient-blue {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .card-gradient-green {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .card-gradient-orange {
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        color: #333 !important;
+    }
+    .card-gradient-red {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    }
+    .card-icon {
+        opacity: 0.3;
+        font-size: 4rem !important;
+    }
+</style>
 <body class="bg-light">
 
 <nav th:replace="fragments/header :: navbar"></nav>
@@ -15,84 +51,49 @@
         <h3 class="mb-4">💼 Dashboard Kế toán</h3>
         
         <!-- Financial Summary Cards -->
-        <div class="row mb-4">
+        <div class="row mb-4 g-3">
             <div class="col-md-3">
-                <div class="card bg-primary text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h4 id="totalRevenue">0 VNĐ</h4>
-                                <p class="mb-0">Tổng doanh thu</p>
-                            </div>
-                            <i class="bi bi-currency-dollar fs-1"></i>
+                <div class="card dashboard-card card-gradient-blue text-white">
+                    <div class="card-body position-relative">
+                        <i class="bi bi-graph-up-arrow position-absolute top-0 end-0 me-3 mt-2 card-icon"></i>
+                        <div class="position-relative">
+                            <h4 id="totalRevenue" class="fw-bold mb-1">0 VNĐ</h4>
+                            <p class="mb-0 opacity-75">💰 Tổng doanh thu</p>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card bg-success text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h4 id="totalPayments">0</h4>
-                                <p class="mb-0">Thanh toán hôm nay</p>
-                            </div>
-                            <i class="bi bi-credit-card fs-1"></i>
+                <div class="card dashboard-card card-gradient-green text-white">
+                    <div class="card-body position-relative">
+                        <i class="bi bi-credit-card position-absolute top-0 end-0 me-3 mt-2 card-icon"></i>
+                        <div class="position-relative">
+                            <h4 id="totalPayments" class="fw-bold mb-1">0</h4>
+                            <p class="mb-0 opacity-75">💳 Thanh toán (30 ngày)</p>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card bg-warning text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h4 id="pendingInvoices">0</h4>
-                                <p class="mb-0">Hóa đơn chờ thanh toán</p>
-                            </div>
-                            <i class="bi bi-file-text fs-1"></i>
+                <div class="card dashboard-card card-gradient-orange">
+                    <div class="card-body position-relative">
+                        <i class="bi bi-file-earmark-text position-absolute top-0 end-0 me-3 mt-2 card-icon"></i>
+                        <div class="position-relative">
+                            <h4 id="pendingInvoices" class="fw-bold mb-1">0</h4>
+                            <p class="mb-0 opacity-75">📄 Hóa đơn chờ thanh toán</p>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card bg-danger text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h4 id="overdueDebts">0</h4>
-                                <p class="mb-0">Công nợ quá hạn</p>
-                            </div>
-                            <i class="bi bi-exclamation-triangle fs-1"></i>
+                <div class="card dashboard-card card-gradient-red text-white">
+                    <div class="card-body position-relative">
+                        <i class="bi bi-exclamation-triangle position-absolute top-0 end-0 me-3 mt-2 card-icon"></i>
+                        <div class="position-relative">
+                            <h4 id="overdueDebts" class="fw-bold mb-1">0</h4>
+                            <p class="mb-0 opacity-75">⚠️ Công nợ quá hạn</p>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <h5>Thao tác nhanh</h5>
-                <div class="btn-group" role="group">
-                    <a href="/web/accountant/payments" class="btn btn-outline-primary">
-                        <i class="bi bi-credit-card"></i> Quản lý thanh toán
-                    </a>
-                    <a href="/web/accountant/invoices" class="btn btn-outline-success">
-                        <i class="bi bi-file-text"></i> Quản lý hóa đơn
-                    </a>
-                    <a href="/web/accountant/reports" class="btn btn-outline-info">
-                        <i class="bi bi-graph-up"></i> Báo cáo tài chính
-                    </a>
-                    <a href="/web/accountant/debts" class="btn btn-outline-warning">
-                        <i class="bi bi-people"></i> Quản lý công nợ
-                    </a>
-                    <a href="/web/accountant/commissions" class="btn btn-outline-secondary">
-                        <i class="bi bi-cash-coin"></i> Hoa hồng
-                    </a>
-                    <a href="/web/accountant/reconciliation" class="btn btn-outline-dark">
-                        <i class="bi bi-bank"></i> Đối soát ngân hàng
-                    </a>
                 </div>
             </div>
         </div>
@@ -133,20 +134,23 @@
         // Load dashboard data
         async function loadDashboardData() {
             try {
-                const token = localStorage.getItem('jwt');
-                
                 // Load financial summary
-                const summaryResponse = await fetch('/api/accountant/reports/summary?startDate=2024-01-01&endDate=2024-12-31', {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                const today = new Date();
+                const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                const startDate = firstDayOfMonth.toISOString().split('T')[0];
+                const endDate = today.toISOString().split('T')[0];
+                
+                const summaryResponse = await fetch(`/api/accountant/dashboard/summary`, {
+                    credentials: 'include'
                 });
                 if (summaryResponse.ok) {
                     const summary = await summaryResponse.json();
                     document.getElementById('totalRevenue').textContent = formatCurrency(summary.totalRevenue);
                 }
 
-                // Load recent payments
-                const paymentsResponse = await fetch('/api/accountant/payments', {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                // Load today's payments
+                const paymentsResponse = await fetch('/api/accountant/payments/today', {
+                    credentials: 'include'
                 });
                 if (paymentsResponse.ok) {
                     const payments = await paymentsResponse.json();
@@ -155,13 +159,22 @@
                 }
 
                 // Load pending invoices
-                const invoicesResponse = await fetch('/api/accountant/invoices/status/PENDING', {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                const invoicesResponse = await fetch('/api/accountant/invoices/pending', {
+                    credentials: 'include'
                 });
                 if (invoicesResponse.ok) {
                     const invoices = await invoicesResponse.json();
                     document.getElementById('pendingInvoices').textContent = invoices.length;
                     loadPendingInvoices(invoices.slice(0, 5));
+                }
+
+                // Load overdue debts
+                const debtsResponse = await fetch('/api/accountant/debts/overdue', {
+                    credentials: 'include'
+                });
+                if (debtsResponse.ok) {
+                    const overdueCount = await debtsResponse.json();
+                    document.getElementById('overdueDebts').textContent = overdueCount;
                 }
 
             } catch (error) {
@@ -177,12 +190,15 @@
             }
 
             container.innerHTML = payments.map(payment => `
-                <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
                     <div>
-                        <small class="text-muted">Đơn #${payment.orderId}</small>
-                        <div>${formatCurrency(payment.amount)}</div>
+                        <div class="fw-bold">${formatCurrency(payment.amount)}</div>
+                        <small class="text-muted">
+                            <i class="bi bi-box"></i> ${payment.orderCode || 'N/A'} • 
+                            <i class="bi bi-credit-card"></i> ${payment.paymentMethod || 'N/A'}
+                        </small>
                     </div>
-                    <span class="badge bg-${payment.status === 'COMPLETED' ? 'success' : 'warning'}">${payment.status}</span>
+                    <span class="badge bg-${getPaymentStatusColor(payment.status)}">${payment.status}</span>
                 </div>
             `).join('');
         }
@@ -195,12 +211,15 @@
             }
 
             container.innerHTML = invoices.map(invoice => `
-                <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
                     <div>
-                        <small class="text-muted">${invoice.invoiceNumber}</small>
-                        <div>${formatCurrency(invoice.totalAmount)}</div>
+                        <div class="fw-bold">${formatCurrency(invoice.finalAmount || invoice.totalAmount)}</div>
+                        <small class="text-muted">
+                            <i class="bi bi-file-text"></i> ${invoice.invoiceNumber} • 
+                            <i class="bi bi-box"></i> ${invoice.orderCode || 'N/A'}
+                        </small>
                     </div>
-                    <span class="badge bg-warning">${invoice.status}</span>
+                    <span class="badge bg-${getInvoiceStatusColor(invoice.status)}">${invoice.status}</span>
                 </div>
             `).join('');
         }
@@ -210,6 +229,26 @@
                 style: 'currency',
                 currency: 'VND'
             }).format(amount || 0);
+        }
+
+        function getPaymentStatusColor(status) {
+            const statusMap = {
+                'COMPLETED': 'success',
+                'PENDING': 'warning',
+                'FAILED': 'danger',
+                'REFUNDED': 'info'
+            };
+            return statusMap[status] || 'secondary';
+        }
+
+        function getInvoiceStatusColor(status) {
+            const statusMap = {
+                'PAID': 'success',
+                'PENDING': 'warning',
+                'OVERDUE': 'danger',
+                'CANCELLED': 'secondary'
+            };
+            return statusMap[status] || 'warning';
         }
 
         // Load data on page load

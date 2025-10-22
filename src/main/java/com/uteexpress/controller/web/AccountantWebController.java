@@ -3,6 +3,7 @@ package com.uteexpress.controller.web;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 public class AccountantWebController {
@@ -29,6 +30,13 @@ public class AccountantWebController {
     public String invoicesPage(Model model) {
         model.addAttribute("title", "Quản lý hóa đơn");
         return "accountant/invoices";
+    }
+
+    @GetMapping("/web/accountant/invoices/{id}")
+    public String invoiceDetailPage(@PathVariable Long id, Model model) {
+        model.addAttribute("invoiceId", id);
+        model.addAttribute("title", "Chi tiết hóa đơn");
+        return "accountant/invoice-detail";
     }
 
     @GetMapping("/web/accountant/reports")

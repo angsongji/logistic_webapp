@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<style th:replace="fragments/sidebar_accountant :: sidebar-styles"></style>
+<style>
+    .invoice-container {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 30px;
+        margin: 20px 0;
+    }
+    .invoice-header {
+        border-bottom: 3px solid #0d6efd;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+    .invoice-title {
+        font-size: 32px;
+        font-weight: bold;
+        color: #0d6efd;
+    }
+    .invoice-number {
+        font-size: 24px;
+        color: #6c757d;
+    }
+    .info-section {
+        margin-bottom: 30px;
+    }
+    .info-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #0d6efd;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+    .info-row {
+        display: flex;
+        padding: 8px 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    .info-label {
+        width: 200px;
+        font-weight: 600;
+        color: #495057;
+    }
+    .info-value {
+        flex: 1;
+        color: #212529;
+    }
+    .amount-summary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 10px;
+        margin-top: 30px;
+    }
+    .amount-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        font-size: 16px;
+    }
+    .final-amount-row {
+        border-top: 2px solid rgba(255,255,255,0.3);
+        margin-top: 15px;
+        padding-top: 15px;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    .action-btn {
+        position: fixed;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        color: white;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        font-size: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .print-btn {
+        bottom: 30px;
+        right: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .back-btn {
+        bottom: 100px;
+        right: 30px;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .action-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    @media print {
+        .accountant-sidebar, nav, .action-btn, .btn {
+            display: none !important;
+        }
+        .main-content-with-sidebar {
+            margin-left: 0 !important;
+        }
+    }
+</style>
+<body class="bg-light">
+
+<nav th:replace="fragments/header :: navbar"></nav>
+<div th:replace="fragments/sidebar_accountant :: sidebar-accountant"></div>
+
+<div class="main-content-with-sidebar">
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>📄 Chi tiết hóa đơn</h3>
+            <a href="/web/accountant/invoices" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Quay lại
+            </a>
+        </div>
+
+        <div class="invoice-container">
+            <!-- Invoice Header -->
+            <div class="invoice-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="invoice-title">HÓA ĐƠN</div>
+                        <div class="invoice-number" id="invoiceNumber">Loading...</div>
+                    </div>
+                    <div class="text-end">
+                        <img src="https://via.placeholder.com/150x50/0d6efd/ffffff?text=UTEEXPRESS" alt="Logo" style="height: 50px;">
+                        <div class="mt-2">
+                            <strong>UTEExpress Logistics</strong><br>
+                            <small>Số 1 Võ Văn Ngân, Thủ Đức, TP.HCM</small><br>
+                            <small>Hotline: 1900-xxxx</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoice Info -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-section">
+                        <div class="info-title">📋 Thông tin hóa đơn</div>
+                        <div class="info-row">
+                            <div class="info-label">Mã đơn hàng:</div>
+                            <div class="info-value" id="orderCode">-</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Ngày phát hành:</div>
+                            <div class="info-value" id="issueDate">-</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Ngày đến hạn:</div>
+                            <div class="info-value" id="dueDate">-</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Ngày thanh toán:</div>
+                            <div class="info-value" id="paymentDate">-</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Trạng thái:</div>
+                            <div class="info-value"><span id="statusBadge">-</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6" id="orderInfoSection" style="display:none;">
+                    <div class="info-section">
+                        <div class="info-title">📦 Thông tin đơn hàng</div>
+                        <div class="info-row">
+                            <div class="info-label">Dịch vụ:</div>
+                            <div class="info-value" id="serviceType">-</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Trạng thái đơn:</div>
+                            <div class="info-value" id="orderStatus">-</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Ghi chú:</div>
+                            <div class="info-value" id="notes">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sender & Receiver Info -->
+            <div class="row" id="shippingInfoSection" style="display:none;">
+                <div class="col-md-6">
+                    <div class="info-section">
+                        <div class="info-title">📤 Người gửi</div>
+                        <div class="info-row">
+                            <div class="info-label">Tên:</div>
+                            <div class="info-value" id="senderName">-</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Số điện thoại:</div>
+                            <div class="info-value" id="senderPhone">-</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Địa chỉ:</div>
+                            <div class="info-value" id="senderAddress">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-section">
+                        <div class="info-title">📥 Người nhận</div>
+                        <div class="info-row">
+                            <div class="info-label">Tên:</div>
+                            <div class="info-value" id="recipientName">-</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Số điện thoại:</div>
+                            <div class="info-value" id="recipientPhone">-</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Địa chỉ:</div>
+                            <div class="info-value" id="recipientAddress">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amount Summary -->
+            <div class="amount-summary">
+                <div class="amount-row">
+                    <span>Tổng tiền (trước thuế):</span>
+                    <span id="totalAmount">0 ₫</span>
+                </div>
+                <div class="amount-row">
+                    <span>Thuế VAT (10%):</span>
+                    <span id="taxAmount">0 ₫</span>
+                </div>
+                <div class="amount-row">
+                    <span>Giảm giá:</span>
+                    <span id="discountAmount">0 ₫</span>
+                </div>
+                <div class="amount-row final-amount-row">
+                    <span>TỔNG CỘNG:</span>
+                    <span id="finalAmount">0 ₫</span>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="info-section mt-4" id="invoiceNotesSection" style="display:none;">
+                <div class="info-title">📝 Ghi chú</div>
+                <p id="invoiceNotes" class="text-muted"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<button class="action-btn back-btn" onclick="window.location.href='/web/accountant/invoices'" title="Quay lại danh sách">
+    <i class="bi bi-arrow-left"></i>
+</button>
+<button class="action-btn print-btn" onclick="window.print()" title="In hóa đơn">
+    <i class="bi bi-printer-fill"></i>
+</button>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const invoiceId = /*[[${invoiceId}]]*/ 0;
+    console.log('Invoice ID from Thymeleaf:', invoiceId);
+    
+    if (!invoiceId || invoiceId === 0) {
+        alert('Lỗi: Không có ID hóa đơn!');
+        window.location.href = '/web/accountant/invoices';
+    }
+
+    async function loadInvoiceDetail() {
+        try {
+            console.log('Fetching invoice with ID:', invoiceId);
+            // Load invoice data
+            const invoiceRes = await fetch(`/api/accountant/invoices/${invoiceId}`, {
+                credentials: 'include'
+            });
+            
+
+            const invoice = await invoiceRes.json();
+            
+            // Display invoice info
+            document.getElementById('invoiceNumber').textContent = invoice.invoiceNumber || 'N/A';
+            document.getElementById('orderCode').textContent = invoice.orderCode || 'N/A';
+            document.getElementById('issueDate').textContent = formatDate(invoice.issuedDate);
+            document.getElementById('dueDate').textContent = formatDate(invoice.dueDate) || 'Không có';
+            document.getElementById('paymentDate').textContent = formatDate(invoice.paymentDate) || 'Chưa thanh toán';
+            
+            // Status badge
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.className = 'status-badge bg-' + getStatusColor(invoice.status);
+            statusBadge.textContent = getStatusText(invoice.status);
+            
+            // Amounts
+            document.getElementById('totalAmount').textContent = formatCurrency(invoice.totalAmount);
+            document.getElementById('taxAmount').textContent = formatCurrency(invoice.taxAmount);
+            document.getElementById('discountAmount').textContent = formatCurrency(invoice.discountAmount);
+            document.getElementById('finalAmount').textContent = formatCurrency(invoice.finalAmount);
+
+            // Invoice notes
+            if (invoice.notes) {
+                document.getElementById('invoiceNotesSection').style.display = 'block';
+                document.getElementById('invoiceNotes').textContent = invoice.notes;
+            }
+
+            // Display order details if available
+            if (invoice.orderId) {
+                document.getElementById('orderInfoSection').style.display = 'block';
+                document.getElementById('shippingInfoSection').style.display = 'block';
+                
+                // Order info
+                document.getElementById('serviceType').textContent = getServiceTypeText(invoice.serviceType);
+                document.getElementById('orderStatus').textContent = getOrderStatusText(invoice.orderStatus);
+                document.getElementById('notes').textContent = invoice.orderNotes || 'Không có ghi chú';
+                
+                // Sender info
+                document.getElementById('senderName').textContent = invoice.senderName || '-';
+                document.getElementById('senderPhone').textContent = invoice.senderPhone || '-';
+                document.getElementById('senderAddress').textContent = invoice.senderAddress || '-';
+                
+                // Recipient info
+                document.getElementById('recipientName').textContent = invoice.recipientName || '-';
+                document.getElementById('recipientPhone').textContent = invoice.recipientPhone || '-';
+                document.getElementById('recipientAddress').textContent = invoice.recipientAddress || '-';
+            }
+
+        } catch (error) {
+            console.error('Error loading invoice:', error);
+        }
+    }
+
+    function getServiceTypeText(type) {
+        const types = {
+            'CHUAN': 'Giao hàng chuẩn',
+            'NHANH': 'Giao hàng nhanh',
+            'TIET_KIEM': 'Giao hàng tiết kiệm'
+        };
+        return types[type] || type || 'Chuẩn';
+    }
+
+    function getOrderStatusText(status) {
+        const statuses = {
+            'CHO_GIAO': 'Chờ giao hàng',
+            'DANG_GIAO': 'Đang giao hàng',
+            'HOAN_THANH': 'Hoàn thành',
+            'THAT_BAI': 'Thất bại',
+            'HUY': 'Đã hủy'
+        };
+        return statuses[status] || status || '-';
+    }
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(amount || 0);
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return null;
+        const date = new Date(dateString);
+        return date.toLocaleDateString('vi-VN');
+    }
+
+    function getStatusColor(status) {
+        const colors = {
+            'PAID': 'success',
+            'PENDING': 'warning',
+            'OVERDUE': 'danger',
+            'CANCELLED': 'secondary'
+        };
+        return colors[status] || 'secondary';
+    }
+
+    function getStatusText(status) {
+        const texts = {
+            'PAID': 'Đã thanh toán',
+            'PENDING': 'Chờ thanh toán',
+            'OVERDUE': 'Quá hạn',
+            'CANCELLED': 'Đã hủy'
+        };
+        return texts[status] || status;
+    }
+
+    // Load data on page load
+    loadInvoiceDetail();
+    /*]]>*/
+</script>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+<script th:replace="fragments/sidebar_accountant :: sidebar-script"></script>
+
+</body>
+</html>
+

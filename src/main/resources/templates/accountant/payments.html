@@ -2,6 +2,12 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="fragments/header :: head"></head>
 <style th:replace="fragments/sidebar_accountant :: sidebar-styles"></style>
+<style>
+    .table td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+</style>
 <body class="bg-light">
 
 <nav th:replace="fragments/header :: navbar"></nav>
@@ -35,21 +41,53 @@
         });
         const data = await res.json();
         const tbody = document.getElementById('payments-table');
-        tbody.innerHTML = data.map(p =>
-            `<tr>
+        tbody.innerHTML = data.map(p => {
+            const isCompleted = p.status === 'COMPLETED' || p.status === 'Đã thanh toán';
+            const isPending = p.status === 'PENDING' || p.status === 'Chờ thanh toán';
+            
+            return `<tr>
                 <td>${p.id}</td>
-                <td>${p.orderId}</td>
-                <td>${p.amount}</td>
-                <td>${p.method}</td>
-                <td>${p.status}</td>
+                <td>${p.orderCode || "N/A"}</td>
+                <td>${formatCurrency(p.amount || 0)}</td>
+                <td>${p.paymentMethod || "N/A"}</td>
+                <td><span class="badge bg-${getPaymentStatusBadge(p.status)}">${p.status}</span></td>
                 <td>
-                    <button class='btn btn-success btn-sm' onclick='confirm(${p.id})'>✔</button>
-                    <button class='btn btn-danger btn-sm' onclick='refund(${p.id})'>↩</button>
+                    ${isPending ? `
+                        <button class='btn btn-success btn-sm me-1' onclick='confirmPayment(${p.id})' title='Xác nhận thanh toán'>
+                            <i class='bi bi-check-circle'></i> Xác nhận
+                        </button>
+                    ` : ''}
+                    ${isCompleted ? `
+                        <button class='btn btn-warning btn-sm' onclick='refund(${p.id})' title='Hoàn tiền'>
+                            <i class='bi bi-arrow-counterclockwise'></i> Hoàn tiền
+                        </button>
+                    ` : ''}
+                    ${!isCompleted && !isPending ? `
+                        <span class='text-muted'><i class='bi bi-dash-circle'></i> Không khả dụng</span>
+                    ` : ''}
                 </td>
-            </tr>`).join('');
+            </tr>`;
+        }).join('');
     }
 
-    async function confirm(id) {
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(amount);
+    }
+
+    function getPaymentStatusBadge(status) {
+        const badges = {
+            'COMPLETED': 'success',
+            'PENDING': 'warning',
+            'FAILED': 'danger',
+            'REFUNDED': 'secondary'
+        };
+        return badges[status] || 'secondary';
+    }
+
+    async function confirmPayment(id) {
         await fetch(`/api/accountant/payments/${id}/confirm`, {
             method: 'POST',
             credentials: 'include'

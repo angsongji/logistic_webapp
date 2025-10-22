@@ -2,6 +2,12 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
   <head th:replace="fragments/header :: head"></head>
   <style th:replace="fragments/sidebar_accountant :: sidebar-styles"></style>
+  <style>
+    .table td {
+      text-align: center !important;
+      vertical-align: middle !important;
+    }
+  </style>
   <body class="bg-light">
     <nav th:replace="fragments/header :: navbar"></nav>
 
@@ -38,28 +44,52 @@
             return;
           }
           const data = await res.json();
+          console.log('Invoices data:', data); // Debug
           const tbody = document.getElementById("invoices-table");
           tbody.innerHTML = data
             .map(
-              (inv) =>
-                `<tr>
+              (inv) => {
+                console.log('Invoice ID:', inv.id); // Debug
+                return `<tr>
                     <td>${inv.id}</td>
                     <td>${inv.invoiceNumber}</td>
-                    <td>${inv.orderId || ""}</td>
-                    <td>${inv.totalAmount || 0}</td>
-                    <td>${inv.status}</td>
+                    <td>${inv.orderCode || "N/A"}</td>
+                    <td>${formatCurrency(inv.finalAmount || 0)}</td>
+                    <td><span class="badge bg-${getStatusBadge(inv.status)}">${inv.status}</span></td>
                     <td>
-                        <button class='btn btn-primary btn-sm' onclick='view(${
-                          inv.id
-                        })'>Xem</button>
+                        <button class='btn btn-info btn-sm' onclick='view(${inv.id})' title='Xem chi tiết'>
+                            <i class='bi bi-eye'></i> Xem
+                        </button>
                     </td>
-                </tr>`
+                </tr>`;
+              }
             )
             .join("");
         }
 
+        function formatCurrency(amount) {
+          return new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          }).format(amount);
+        }
+
+        function getStatusBadge(status) {
+          const badges = {
+            PAID: "success",
+            PENDING: "warning",
+            OVERDUE: "danger",
+            CANCELLED: "secondary",
+          };
+          return badges[status] || "secondary";
+        }
+
         function view(id) {
-          // simple navigation to invoice detail if exists
+          console.log('View clicked with ID:', id); // Debug
+          if (!id || id === 0) {
+            alert('ID không hợp lệ: ' + id);
+            return;
+          }
           window.location.href = `/web/accountant/invoices/${id}`;
         }
 
