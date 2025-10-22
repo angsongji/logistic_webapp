@@ -6,6 +6,8 @@ import com.uteexpress.service.AuthService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
 @RequestMapping("/auth")
@@ -37,14 +39,63 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@ModelAttribute LoginRequest req, Model model) {
-        // For Thymeleaf demo we won't generate JWT here; recommend using REST login for JWT
+    public String login(@ModelAttribute LoginRequest req, Model model, HttpServletResponse response) {
         try {
-            authService.login(req);
-            return "redirect:/customer/orders/new";
+            // Get JWT token from AuthService
+            var result = authService.login(req);
+            String token = result.get("token");
+            String role = result.get("role");
+            
+            // Set JWT token as HTTP-only cookie
+            Cookie jwtCookie = new Cookie("jwt_token", token);
+            jwtCookie.setHttpOnly(true);
+            jwtCookie.setSecure(false); // Set true for HTTPS
+            jwtCookie.setPath("/");
+            jwtCookie.setMaxAge(24 * 60 * 60); // 24 hours
+            response.addCookie(jwtCookie);
+            
+            // Set role cookie for frontend display
+            Cookie roleCookie = new Cookie("user_role", role);
+            roleCookie.setHttpOnly(false); // Allow frontend to read
+            roleCookie.setPath("/");
+            roleCookie.setMaxAge(24 * 60 * 60);
+            response.addCookie(roleCookie);
+            
+            // Store user info in model
+            model.addAttribute("username", req.getUsername());
+            model.addAttribute("role", role);
+            
+            // Redirect based on user role
+            return getRedirectUrlByRole(role);
         } catch (RuntimeException ex) {
             model.addAttribute("error", ex.getMessage());
             return "auth/login";
         }
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpServletResponse response) {
+        // Clear JWT cookie
+        Cookie jwtCookie = new Cookie("jwt_token", null);
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(0); // Expire immediately
+        response.addCookie(jwtCookie);
+        
+        // Clear role cookie
+        Cookie roleCookie = new Cookie("user_role", null);
+        roleCookie.setPath("/");
+        roleCookie.setMaxAge(0);
+        response.addCookie(roleCookie);
+        
+        return "redirect:/auth/login";
+    }
+    
+    private String getRedirectUrlByRole(String role) {
+        return switch (role) {
+            case "ROLE_ACCOUNTANT" -> "redirect:/web/accountant/dashboard";
+            case "ROLE_CUSTOMER" -> "redirect:/web/customer/dashboard";
+            default -> "redirect:/web/customer/dashboard"; // Default fallback
+        };
     }
 }

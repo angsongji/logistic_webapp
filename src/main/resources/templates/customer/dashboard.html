@@ -24,9 +24,9 @@
 
 <script>
     async function loadOrders() {
-        const token = localStorage.getItem('jwt');
+        // JWT token is automatically sent via HTTP-only cookie
         const res = await fetch('/api/customer/orders', {
-            headers: { 'Authorization': 'Bearer ' + token }
+            credentials: 'include' // Include cookies in request
         });
         const data = await res.json();
         const tbody = document.getElementById('orders-table');
