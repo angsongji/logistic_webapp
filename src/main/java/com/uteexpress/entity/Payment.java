@@ -26,13 +26,13 @@ public class Payment {
     @Column(nullable = false)
     private BigDecimal amount;
 
-    @Column
+    @Column(name = "payment_method")
     private String method;
 
     @Column
     private String status;
 
-    @Column
+    @Column(name = "transaction_id")
     private String transactionId;
 
     @Column(name = "created_at", nullable = false, updatable = false)

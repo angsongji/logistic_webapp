@@ -10,12 +10,12 @@ import java.util.List;
 
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
-    List<Invoice> findByStatusOrderByIssuedDateDesc(Invoice.InvoiceStatus status);
-    List<Invoice> findByIssuedDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+    List<Invoice> findByStatusOrderByIssueDateDesc(Invoice.InvoiceStatus status);
+    List<Invoice> findByIssueDateBetween(LocalDateTime startDate, LocalDateTime endDate);
     
-    @Query("SELECT SUM(i.totalAmount) FROM Invoice i WHERE i.status = :status")
+    @Query("SELECT SUM(i.finalAmount) FROM Invoice i WHERE i.status = :status")
     Double getTotalAmountByStatus(Invoice.InvoiceStatus status);
     
-    @Query("SELECT SUM(i.totalAmount) FROM Invoice i WHERE i.issuedDate BETWEEN :startDate AND :endDate")
+    @Query("SELECT SUM(i.finalAmount) FROM Invoice i WHERE i.issueDate BETWEEN :startDate AND :endDate")
     Double getTotalAmountByDateRange(LocalDateTime startDate, LocalDateTime endDate);
 }
