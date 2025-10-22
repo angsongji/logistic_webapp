@@ -48,14 +48,4 @@ public class CustomerWebController {
         model.addAttribute("title", "Theo dõi đơn hàng");
         return "customer/tracking";
     }
-
-    @GetMapping("/web/customer/profile")
-    public String profilePage(Model model, @org.springframework.web.bind.annotation.RequestHeader(value = "HX-Request", required = false) String hxRequest) {
-        model.addAttribute("title", "Tài khoản của tôi");
-        // If request comes from HTMX, return only the fragment to be inserted into the page
-        if (hxRequest != null && hxRequest.equalsIgnoreCase("true")) {
-            return "customer/profile :: profile-content";
-        }
-        return "customer/profile";
-    }
 }

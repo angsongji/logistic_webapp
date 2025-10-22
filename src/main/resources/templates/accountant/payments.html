@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="fragments/header :: head"></head>
+<style th:replace="fragments/sidebar_accountant :: sidebar-styles"></style>
 <body class="bg-light">
 
 <nav th:replace="fragments/header :: navbar"></nav>
 
-<div id="page-content" class="container mt-4">
-    <h3 class="mb-3">💳 Danh sách thanh toán</h3>
+<!-- Sidebar -->
+<div th:replace="fragments/sidebar_accountant :: sidebar-accountant"></div>
+
+<!-- Main Content -->
+<div class="main-content-with-sidebar">
+    <div class="container-fluid p-4">
+        <h3 class="mb-4">💳 Danh sách thanh toán</h3>
 
 <table class="table table-hover">
     <thead>
@@ -63,10 +69,13 @@
 
     loadPayments();
 </script>
-
+    </div>
 </div>
 
 <footer th:replace="fragments/footer :: footer"></footer>
+
+<!-- Sidebar Script -->
+<script th:replace="fragments/sidebar_accountant :: sidebar-script"></script>
 
 </body>
 </html>

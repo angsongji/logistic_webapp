@@ -1,34 +1,177 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-  <body>
-    <div th:fragment="sidebar-accountant" class="list-group">
-      <a
-        href="/web/accountant/dashboard"
-        class="list-group-item list-group-item-action"
-        hx-get="/web/accountant/dashboard"
-        hx-target="#page-content"
-        hx-select="#page-content"
-        hx-push-url="true"
-        >Doanh thu &amp; Báo cáo</a
-      >
-      <a
-        href="/web/accountant/invoices"
-        class="list-group-item list-group-item-action"
-        hx-get="/web/accountant/invoices"
-        hx-target="#page-content"
-        hx-select="#page-content"
-        hx-push-url="true"
-        >Đơn hàng &amp; Giao nhận</a
-      >
-      <a
-        href="/web/accountant/payments"
-        class="list-group-item list-group-item-action"
-        hx-get="/web/accountant/payments"
-        hx-target="#page-content"
-        hx-select="#page-content"
-        hx-push-url="true"
-        >Khách hàng &amp; Thanh toán</a
-      >
+<head>
+    <style th:fragment="sidebar-styles">
+        .accountant-sidebar {
+            position: fixed;
+            top: 56px; /* Height of navbar */
+            left: 0;
+            bottom: 0;
+            width: 250px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            z-index: 1000;
+            padding: 0;
+        }
+
+        .accountant-sidebar .sidebar-header {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .accountant-sidebar .sidebar-header h5 {
+            color: white;
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .accountant-sidebar .sidebar-header small {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .sidebar-nav {
+            padding: 10px 0;
+        }
+
+        .sidebar-nav .nav-item {
+            margin: 5px 10px;
+        }
+
+        .sidebar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9);
+            padding: 12px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .sidebar-nav .nav-link i {
+            width: 24px;
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-nav .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: 600;
+        }
+
+        .main-content-with-sidebar {
+            margin-left: 250px;
+            min-height: calc(100vh - 56px);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .accountant-sidebar {
+                width: 100%;
+                position: relative;
+                top: 0;
+            }
+            
+            .main-content-with-sidebar {
+                margin-left: 0;
+            }
+        }
+
+        /* Custom scrollbar */
+        .accountant-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .accountant-sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .accountant-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .accountant-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div th:fragment="sidebar-accountant" class="accountant-sidebar">
+        <div class="sidebar-header">
+            <h5><i class="bi bi-briefcase-fill me-2"></i>Kế toán</h5>
+            <small>Quản lý tài chính</small>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-item">
+                <a href="/web/accountant/dashboard" class="nav-link active" id="nav-dashboard">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/web/accountant/invoices" class="nav-link" id="nav-invoices">
+                    <i class="bi bi-receipt"></i>
+                    <span>Hóa đơn</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/web/accountant/payments" class="nav-link" id="nav-payments">
+                    <i class="bi bi-credit-card"></i>
+                    <span>Thanh toán</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/web/accountant/reports" class="nav-link" id="nav-reports">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Báo cáo</span>
+                </a>
+            </div>
+
+            <div class="nav-item">
+                <a href="/web/accountant/commissions" class="nav-link" id="nav-commissions">
+                    <i class="bi bi-cash-coin"></i>
+                    <span>Hoa hồng</span>
+                </a>
+            </div>
+            <div class="nav-item">
+              <a href="/web/accountant/debts" class="nav-link" id="nav-debts">
+                  <i class="bi bi-exclamation-triangle"></i>
+                  <span>Công nợ</span>
+              </a>
+          </div>
+        </nav>
     </div>
-  </body>
+
+    <!-- Script to handle active state -->
+    <script th:fragment="sidebar-script">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get current path
+            const currentPath = window.location.pathname;
+            
+            // Remove all active classes
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Add active class to current page
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
 </html>
