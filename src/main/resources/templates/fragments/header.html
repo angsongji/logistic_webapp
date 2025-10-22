@@ -11,6 +11,17 @@
     <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <style>
+        /* Fixed navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+        }
+        body {
+            padding-top: 56px; /* Height of navbar */
+        }
         .user-avatar {
             width: 36px;
             height: 36px;
@@ -48,7 +59,7 @@
                             <div class="user-avatar me-2">
                                 <span id="avatarInitial2">U</span>
                             </div>
-                            <div>
+        <div>
                                 <div class="fw-bold" id="userName">Loading...</div>
                                 <small class="text-muted" id="userEmail">loading@example.com</small>
                             </div>

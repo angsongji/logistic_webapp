@@ -13,6 +13,7 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
     List<Debt> findByDebtorOrderByCreatedAtDesc(User debtor);
     List<Debt> findByCreditorOrderByCreatedAtDesc(User creditor);
     List<Debt> findByDebtTypeAndStatus(Debt.DebtType debtType, Debt.DebtStatus status);
+    List<Debt> findByStatus(Debt.DebtStatus status);
     
     @Query("SELECT SUM(d.remainingAmount) FROM Debt d WHERE d.debtor = :debtor AND d.status != 'PAID'")
     Double getTotalDebtByDebtor(User debtor);

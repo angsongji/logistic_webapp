@@ -16,40 +16,39 @@ public class Invoice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "invoice_number", nullable = false, unique = true)
     private String invoiceNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private Order order;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id")
-    private User customer;
-
-    @Column(nullable = false)
-    private BigDecimal subtotal;
-
-    @Column(nullable = false)
-    private BigDecimal taxAmount;
-
-    @Column(nullable = false)
+    @Column(name = "total_amount", nullable = false)
     private BigDecimal totalAmount;
 
+    @Column(name = "tax_amount")
+    private BigDecimal taxAmount;
+
+    @Column(name = "discount_amount")
+    private BigDecimal discountAmount;
+
+    @Column(name = "final_amount", nullable = false)
+    private BigDecimal finalAmount;
+
     @Column
-    private String description;
+    private String notes;
 
     @Enumerated(EnumType.STRING)
     private InvoiceStatus status;
 
-    @Column(name = "issued_date", nullable = false)
-    private LocalDateTime issuedDate;
+    @Column(name = "issue_date", nullable = false)
+    private LocalDateTime issueDate;
 
     @Column(name = "due_date")
     private LocalDateTime dueDate;
 
-    @Column(name = "paid_date")
-    private LocalDateTime paidDate;
+    @Column(name = "payment_date")
+    private LocalDateTime paymentDate;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -60,8 +59,11 @@ public class Invoice {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        issuedDate = LocalDateTime.now();
+        if (issueDate == null) issueDate = LocalDateTime.now();
         if (status == null) status = InvoiceStatus.PENDING;
+        if (discountAmount == null) discountAmount = BigDecimal.ZERO;
+        if (taxAmount == null) taxAmount = BigDecimal.ZERO;
+        if (finalAmount == null) finalAmount = totalAmount.add(taxAmount).subtract(discountAmount);
     }
 
     @PreUpdate
