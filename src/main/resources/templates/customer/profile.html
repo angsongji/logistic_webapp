@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="fragments/header :: head"></head>
+  <body class="bg-light">
+    <nav th:replace="fragments/header :: navbar"></nav>
+
+    <!-- Profile & Password Modals -->
+    <div th:replace="fragments/header :: profile-modal"></div>
+    <div th:replace="fragments/header :: password-modal"></div>
+
+    <div class="container mt-4">
+      <div class="row g-4 justify-content-center">
+        <!-- SIDEBAR: tái sử dụng, auto-active 'profile' -->
+        <aside class="col-12 col-md-3 col-lg-3">
+          <div class="card">
+            <div class="card-body p-0">
+              <div
+                th:replace="fragments/sidebar_customer :: accountSidebar('profile')"
+              ></div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- CONTENT -->
+        <main class="col-12 col-md-9 col-lg-9">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="mb-0">👤 Thông tin cá nhân</h4>
+            </div>
+            <div class="card-body">
+              <!-- giữ nguyên IDs & handlers để không ảnh hưởng xử lý hiện tại -->
+              <form id="profileForm">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Tên đăng nhập</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="profileUsername"
+                      readonly
+                    />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Email</label>
+                    <input
+                      type="email"
+                      class="form-control"
+                      id="profileEmail"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Họ và tên</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="profileFullName"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Số điện thoại</label>
+                    <input type="tel" class="form-control" id="profilePhone" />
+                  </div>
+                </div>
+
+                <div id="profileAlert" class="alert d-none"></div>
+
+                <div class="d-flex gap-2">
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    onclick="saveProfile()"
+                  >
+                    <i class="bi bi-check-circle me-1"></i>Lưu thay đổi
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    onclick="changePassword()"
+                  >
+                    <i class="bi bi-key me-1"></i>Đổi mật khẩu
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <footer th:replace="fragments/footer :: footer"></footer>
+
+    <!-- Profile Script -->
+    <script th:replace="fragments/header :: profile-script"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        loadUserProfile(); // giữ hành vi ban đầu
+      });
+    </script>
+  </body>
+</html>

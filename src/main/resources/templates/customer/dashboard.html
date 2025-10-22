@@ -1,169 +1,214 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: head"></head>
-<body class="bg-light">
+  <head th:replace="fragments/header :: head"></head>
+  <body class="bg-light">
+    <nav th:replace="fragments/header :: navbar"></nav>
 
-<nav th:replace="fragments/header :: navbar"></nav>
+    <!-- Profile & Password Modals -->
+    <div th:replace="fragments/header :: profile-modal"></div>
+    <div th:replace="fragments/header :: password-modal"></div>
 
-<!-- Profile & Password Modals -->
-<div th:replace="fragments/header :: profile-modal"></div>
-<div th:replace="fragments/header :: password-modal"></div>
-
-<div class="container mt-4">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="container mt-4">
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="mb-0">📦 Quản lý đơn hàng</h3>
         <div class="btn-group" role="group">
-            <a href="/web/customer/orders/new" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Tạo đơn mới
-            </a>
-            <a href="/web/customer/tracking" class="btn btn-primary">
-                <i class="bi bi-search"></i> Theo dõi
-            </a>
+          <a href="/web/customer/orders/new" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Tạo đơn mới
+          </a>
+          <a href="/web/customer/tracking" class="btn btn-primary">
+            <i class="bi bi-search"></i> Tra cứu
+          </a>
         </div>
+      </div>
+
+      <!-- Filter tabs -->
+      <ul class="nav nav-tabs mb-3" id="orderTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link active"
+            id="all-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#all"
+            type="button"
+            role="tab"
+          >
+            Tất cả
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="pending-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#pending"
+            type="button"
+            role="tab"
+          >
+            Chờ xử lý
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="shipping-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#shipping"
+            type="button"
+            role="tab"
+          >
+            Đang giao
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="completed-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#completed"
+            type="button"
+            role="tab"
+          >
+            Hoàn thành
+          </button>
+        </li>
+      </ul>
+
+      <!-- Orders Table -->
+      <div class="card">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr class="table-light">
+                  <th>Mã đơn</th>
+                  <th>Địa chỉ giao</th>
+                  <th>Trạng thái</th>
+                  <th>Tổng tiền</th>
+                  <th>Ngày tạo</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="orders-table">
+                <tr>
+                  <td colspan="6" class="text-center">
+                    <div class="spinner-border" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
 
-            <!-- Filter tabs -->
-            <ul class="nav nav-tabs mb-3" id="orderTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
-                        Tất cả
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
-                        Chờ xử lý
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button" role="tab">
-                        Đang giao
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab">
-                        Hoàn thành
-                    </button>
-                </li>
-            </ul>
+    <footer th:replace="fragments/footer :: footer"></footer>
 
-            <!-- Orders Table -->
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                            <tr class="table-light">
-                                <th>Mã đơn</th>
-                                <th>Địa chỉ giao</th>
-                                <th>Trạng thái</th>
-                                <th>Tổng tiền</th>
-                                <th>Ngày tạo</th>
-                                <th>Thao tác</th>
-                            </tr>
-                            </thead>
-                            <tbody id="orders-table">
-                                <tr>
-                                    <td colspan="6" class="text-center">
-                                        <div class="spinner-border" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-</div>
+    <!-- Profile Script -->
+    <script th:replace="fragments/header :: profile-script"></script>
 
-<footer th:replace="fragments/footer :: footer"></footer>
+    <script>
+      let allOrders = [];
 
-<!-- Profile Script -->
-<script th:replace="fragments/header :: profile-script"></script>
-
-<script>
-    let allOrders = [];
-
-    async function loadOrders() {
+      async function loadOrders() {
         try {
-            const res = await fetch('/api/customer/orders', {
-                credentials: 'include'
-            });
-            if (!res.ok) {
-                throw new Error('Failed to load orders');
-            }
-            allOrders = await res.json();
-            displayOrders(allOrders);
+          const res = await fetch("/api/customer/orders", {
+            credentials: "include",
+          });
+          if (!res.ok) {
+            throw new Error("Failed to load orders");
+          }
+          allOrders = await res.json();
+          displayOrders(allOrders);
         } catch (error) {
-            console.error('Error loading orders:', error);
-            document.getElementById('orders-table').innerHTML = 
-                '<tr><td colspan="6" class="text-center text-muted">Không có đơn hàng nào</td></tr>';
+          console.error("Error loading orders:", error);
+          document.getElementById("orders-table").innerHTML =
+            '<tr><td colspan="6" class="text-center text-muted">Không có đơn hàng nào</td></tr>';
         }
-    }
+      }
 
-    function displayOrders(orders) {
-        const tbody = document.getElementById('orders-table');
+      function displayOrders(orders) {
+        const tbody = document.getElementById("orders-table");
         if (orders.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Không có đơn hàng nào</td></tr>';
-            return;
+          tbody.innerHTML =
+            '<tr><td colspan="6" class="text-center text-muted">Không có đơn hàng nào</td></tr>';
+          return;
         }
 
-        tbody.innerHTML = orders.map(o => {
+        tbody.innerHTML = orders
+          .map((o) => {
             const statusBadge = getStatusBadge(o.status);
             return `
                 <tr>
-                    <td><strong>#${o.id || 'N/A'}</strong></td>
-                    <td class="text-truncate" style="max-width: 200px;">${o.deliveryAddress || 'N/A'}</td>
+                    <td><strong>#${o.id || "N/A"}</strong></td>
+                    <td class="text-truncate" style="max-width: 200px;">${
+                      o.deliveryAddress || "N/A"
+                    }</td>
                     <td>${statusBadge}</td>
-                    <td><strong>${(o.totalAmount || 0).toLocaleString('vi-VN')} ₫</strong></td>
-                    <td>${new Date(o.createdAt).toLocaleString('vi-VN')}</td>
+                    <td><strong>${(o.totalAmount || 0).toLocaleString(
+                      "vi-VN"
+                    )} ₫</strong></td>
+                    <td>${new Date(o.createdAt).toLocaleString("vi-VN")}</td>
                     <td>
-                        <a href="/web/customer/tracking?code=${o.orderCode || o.id}" class="btn btn-sm btn-outline-primary">
+                        <a href="/web/customer/tracking?code=${
+                          o.orderCode || o.id
+                        }" class="btn btn-sm btn-outline-primary">
                             Xem chi tiết
                         </a>
                     </td>
                 </tr>
             `;
-        }).join('');
-    }
+          })
+          .join("");
+      }
 
-    function getStatusBadge(status) {
+      function getStatusBadge(status) {
         const statusMap = {
-            'PENDING': '<span class="badge bg-warning">Chờ xử lý</span>',
-            'CONFIRMED': '<span class="badge bg-info">Đã xác nhận</span>',
-            'PICKING_UP': '<span class="badge bg-primary">Đang lấy hàng</span>',
-            'IN_TRANSIT': '<span class="badge bg-primary">Đang giao</span>',
-            'DELIVERING': '<span class="badge bg-primary">Đang giao</span>',
-            'DELIVERED': '<span class="badge bg-success">Hoàn thành</span>',
-            'CANCELLED': '<span class="badge bg-danger">Đã hủy</span>',
-            'RETURNED': '<span class="badge bg-secondary">Hoàn trả</span>'
+          PENDING: '<span class="badge bg-warning">Chờ xử lý</span>',
+          CONFIRMED: '<span class="badge bg-info">Đã xác nhận</span>',
+          PICKING_UP: '<span class="badge bg-primary">Đang lấy hàng</span>',
+          IN_TRANSIT: '<span class="badge bg-primary">Đang giao</span>',
+          DELIVERING: '<span class="badge bg-primary">Đang giao</span>',
+          DELIVERED: '<span class="badge bg-success">Hoàn thành</span>',
+          CANCELLED: '<span class="badge bg-danger">Đã hủy</span>',
+          RETURNED: '<span class="badge bg-secondary">Hoàn trả</span>',
         };
-        return statusMap[status] || `<span class="badge bg-secondary">${status}</span>`;
-    }
+        return (
+          statusMap[status] ||
+          `<span class="badge bg-secondary">${status}</span>`
+        );
+      }
 
-    // Tab filtering
-    document.getElementById('all-tab').addEventListener('click', () => {
+      // Tab filtering
+      document.getElementById("all-tab").addEventListener("click", () => {
         displayOrders(allOrders);
-    });
+      });
 
-    document.getElementById('pending-tab').addEventListener('click', () => {
-        const filtered = allOrders.filter(o => o.status === 'PENDING' || o.status === 'CONFIRMED');
+      document.getElementById("pending-tab").addEventListener("click", () => {
+        const filtered = allOrders.filter(
+          (o) => o.status === "PENDING" || o.status === "CONFIRMED"
+        );
         displayOrders(filtered);
-    });
+      });
 
-    document.getElementById('shipping-tab').addEventListener('click', () => {
-        const filtered = allOrders.filter(o => o.status === 'PICKING_UP' || o.status === 'IN_TRANSIT' || o.status === 'DELIVERING');
+      document.getElementById("shipping-tab").addEventListener("click", () => {
+        const filtered = allOrders.filter(
+          (o) =>
+            o.status === "PICKING_UP" ||
+            o.status === "IN_TRANSIT" ||
+            o.status === "DELIVERING"
+        );
         displayOrders(filtered);
-    });
+      });
 
-    document.getElementById('completed-tab').addEventListener('click', () => {
-        const filtered = allOrders.filter(o => o.status === 'DELIVERED');
+      document.getElementById("completed-tab").addEventListener("click", () => {
+        const filtered = allOrders.filter((o) => o.status === "DELIVERED");
         displayOrders(filtered);
-    });
+      });
 
-    loadOrders();
-</script>
-
-</body>
+      loadOrders();
+    </script>
+  </body>
 </html>
