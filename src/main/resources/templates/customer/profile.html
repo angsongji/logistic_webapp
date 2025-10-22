@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="fragments/header :: head"></head>
+  <body class="bg-light">
+    <nav th:replace="fragments/header :: navbar"></nav>
+
+    <div id="page-content" class="container mt-4" th:fragment="profile-content">
+      <h3 class="mb-3">👤 Thông tin tài khoản</h3>
+
+      <form method="post" action="/customer/profile" class="card p-3">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Họ và tên</label>
+            <input
+              type="text"
+              class="form-control"
+              name="fullName"
+              th:value="${profile.fullName}"
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              name="email"
+              th:value="${profile.email}"
+              disabled
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Số điện thoại</label>
+            <input
+              type="text"
+              class="form-control"
+              name="phone"
+              th:value="${profile.phone}"
+            />
+          </div>
+          <div class="col-12">
+            <button class="btn btn-primary">Lưu thay đổi</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <footer th:replace="fragments/footer :: footer"></footer>
+  </body>
+</html>

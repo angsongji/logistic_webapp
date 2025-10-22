@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <div th:fragment="sidebar-accountant" class="list-group">
+      <a
+        href="/web/accountant/dashboard"
+        class="list-group-item list-group-item-action"
+        hx-get="/web/accountant/dashboard"
+        hx-target="#page-content"
+        hx-select="#page-content"
+        hx-push-url="true"
+        >Doanh thu &amp; Báo cáo</a
+      >
+      <a
+        href="/web/accountant/invoices"
+        class="list-group-item list-group-item-action"
+        hx-get="/web/accountant/invoices"
+        hx-target="#page-content"
+        hx-select="#page-content"
+        hx-push-url="true"
+        >Đơn hàng &amp; Giao nhận</a
+      >
+      <a
+        href="/web/accountant/payments"
+        class="list-group-item list-group-item-action"
+        hx-get="/web/accountant/payments"
+        hx-target="#page-content"
+        hx-select="#page-content"
+        hx-push-url="true"
+        >Khách hàng &amp; Thanh toán</a
+      >
+    </div>
+  </body>
+</html>
