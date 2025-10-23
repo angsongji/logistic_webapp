@@ -2,17 +2,23 @@ package com.uteexpress.service.impl;
 
 import com.uteexpress.dto.customer.OrderRequestDto;
 import com.uteexpress.dto.customer.OrderResponseDto;
+import com.uteexpress.dto.customer.ShippingFeeRequestDto;
+import com.uteexpress.dto.customer.ShippingFeeResponseDto;
 import com.uteexpress.entity.Order;
 import com.uteexpress.entity.User;
 import com.uteexpress.mapper.OrderMapper;
-import com.uteexpress.repository.OrderItemRepository;
 import com.uteexpress.repository.OrderRepository;
+import com.uteexpress.repository.UserRepository;
+import com.uteexpress.repository.InvoiceRepository;
+import com.uteexpress.repository.PaymentRepository;
 import com.uteexpress.service.CloudinaryService;
 import com.uteexpress.service.ShippingFeeService;
 import com.uteexpress.service.customer.OrderService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -20,18 +26,24 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderItemRepository itemRepository;
     private final CloudinaryService cloudinaryService;
     private final ShippingFeeService shippingFeeService;
+    private final UserRepository userRepository;
+    private final InvoiceRepository invoiceRepository;
+    private final PaymentRepository paymentRepository;
 
     public OrderServiceImpl(OrderRepository orderRepository,
-                            OrderItemRepository itemRepository,
                             CloudinaryService cloudinaryService,
-                            ShippingFeeService shippingFeeService) {
+                            ShippingFeeService shippingFeeService,
+                            UserRepository userRepository,
+                            InvoiceRepository invoiceRepository,
+                            PaymentRepository paymentRepository) {
         this.orderRepository = orderRepository;
-        this.itemRepository = itemRepository;
         this.cloudinaryService = cloudinaryService;
         this.shippingFeeService = shippingFeeService;
+        this.userRepository = userRepository;
+        this.invoiceRepository = invoiceRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     @Override
@@ -47,17 +59,31 @@ public class OrderServiceImpl implements OrderService {
         if (customer != null) {
             order.setSenderName(customer.getFullName());
             order.setSenderPhone(customer.getPhone());
+            // Link to User (store user id in customer_id column)
+            order.setCustomer(customer);
         }
 
         // Calculate shipping fee if service type is provided
         if (dto.getServiceType() != null) {
             order.setServiceType(dto.getServiceType());
             if (dto.getShipmentFee() == null) {
-                dto.setShipmentFee(shippingFeeService.calculateShippingFee(
-                    dto.getSenderAddress(), 
-                    dto.getRecipientAddress(), 
-                    dto.getServiceType()
-                ));
+                // Create ShippingFeeRequestDto for fee calculation
+                ShippingFeeRequestDto feeRequest = new ShippingFeeRequestDto();
+                feeRequest.setDeliveryAddress(dto.getRecipientAddress());
+                feeRequest.setServiceType(dto.getServiceType().toString());
+                feeRequest.setWeight(dto.getWeight());
+                feeRequest.setCodAmount(dto.getCodAmount());
+                
+                // Create pickup address from sender address
+                ShippingFeeRequestDto.AddressDto pickupAddress = new ShippingFeeRequestDto.AddressDto();
+                pickupAddress.setAddress(dto.getSenderAddress());
+                feeRequest.setPickupAddress(pickupAddress);
+                
+                // Calculate shipping fee
+                ShippingFeeResponseDto feeResponse = shippingFeeService.calculateShippingFee(feeRequest);
+                if (feeResponse.getSuccess()) {
+                    dto.setShipmentFee(BigDecimal.valueOf(feeResponse.getShippingFee()));
+                }
             }
         }
 
@@ -71,12 +97,7 @@ public class OrderServiceImpl implements OrderService {
             saved = orderRepository.save(saved);
         }
 
-        // ensure items are saved (cascade should handle, but persist if needed)
-        if (saved.getItems() != null) {
-            final Order finalSaved = saved;
-            saved.getItems().forEach(i -> i.setOrder(finalSaved));
-            itemRepository.saveAll(saved.getItems());
-        }
+        // No order_items table in this project; items are not used.
 
         return OrderMapper.toDto(saved);
     }
@@ -84,13 +105,90 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponseDto getByOrderCode(String code) {
         Order o = orderRepository.findByOrderCode(code).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
-        return OrderMapper.toDto(o);
+        
+        // Find related invoice and payment
+        Optional<com.uteexpress.entity.Invoice> invoiceOpt = invoiceRepository.findByOrderId(o.getId());
+        Optional<com.uteexpress.entity.Payment> paymentOpt = paymentRepository.findByOrderRefId(o.getId());
+        
+        com.uteexpress.entity.Invoice invoice = invoiceOpt.orElse(null);
+        com.uteexpress.entity.Payment payment = paymentOpt.orElse(null);
+        
+        return OrderMapper.toDtoWithInvoiceAndPayment(o, invoice, payment);
     }
 
     @Override
     public List<OrderResponseDto> getOrdersByCustomerUsername(String username) {
-        // simple approach: find orders by senderName matching username.fullName - for production you should relate Order -> User
-        List<Order> orders = orderRepository.findBySenderName(username);
-        return orders.stream().map(OrderMapper::toDto).collect(Collectors.toList());
+        // Prefer querying by the linked customer.id (user id) for robustness
+        List<Order> orders = List.of();
+        try {
+            var userOpt = userRepository.findByUsername(username);
+            if (userOpt.isPresent()) {
+                Long uid = userOpt.get().getId();
+                orders = orderRepository.findByCustomerId(uid);
+            }
+        } catch (Exception ignored) {
+        }
+
+        // Fallback to old behavior if nothing found
+        if (orders == null || orders.isEmpty()) {
+            orders = orderRepository.findBySenderName(username);
+        }
+        return orders.stream().map(order -> {
+            Optional<com.uteexpress.entity.Invoice> invoiceOpt = invoiceRepository.findByOrderId(order.getId());
+            Optional<com.uteexpress.entity.Payment> paymentOpt = paymentRepository.findByOrderRefId(order.getId());
+            
+            com.uteexpress.entity.Invoice invoice = invoiceOpt.orElse(null);
+            com.uteexpress.entity.Payment payment = paymentOpt.orElse(null);
+            
+            return OrderMapper.toDtoWithInvoiceAndPayment(order, invoice, payment);
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OrderResponseDto> getOrdersByCustomerUsernameAndStatus(String username, String status) {
+        List<Order> orders = List.of();
+        try {
+            var userOpt = userRepository.findByUsername(username);
+            if (userOpt.isPresent()) {
+                Long uid = userOpt.get().getId();
+                if (status == null || status.isBlank()) {
+                    orders = orderRepository.findByCustomerId(uid);
+                } else {
+                    try {
+                        Order.OrderStatus st = Order.OrderStatus.valueOf(status);
+                        orders = orderRepository.findByCustomerIdAndStatus(uid, st);
+                    } catch (IllegalArgumentException ex) {
+                        // unknown status string: return empty and let fallback handle
+                        orders = List.of();
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
+        if (orders == null || orders.isEmpty()) {
+            // Fallback: try sender name filtering or status only
+            if (status == null || status.isBlank()) {
+                orders = orderRepository.findBySenderName(username);
+            } else {
+                try {
+                    Order.OrderStatus st = Order.OrderStatus.valueOf(status);
+                    var byStatus = orderRepository.findByStatus(st);
+                    orders = byStatus.stream().filter(o -> username.equals(o.getSenderName())).collect(Collectors.toList());
+                } catch (IllegalArgumentException ex) {
+                    orders = List.of();
+                }
+            }
+        }
+
+        return orders.stream().map(order -> {
+            Optional<com.uteexpress.entity.Invoice> invoiceOpt = invoiceRepository.findByOrderId(order.getId());
+            Optional<com.uteexpress.entity.Payment> paymentOpt = paymentRepository.findByOrderRefId(order.getId());
+            
+            com.uteexpress.entity.Invoice invoice = invoiceOpt.orElse(null);
+            com.uteexpress.entity.Payment payment = paymentOpt.orElse(null);
+            
+            return OrderMapper.toDtoWithInvoiceAndPayment(order, invoice, payment);
+        }).collect(Collectors.toList());
     }
 }

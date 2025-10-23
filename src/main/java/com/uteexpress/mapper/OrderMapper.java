@@ -2,12 +2,9 @@ package com.uteexpress.mapper;
 
 import com.uteexpress.dto.customer.OrderRequestDto;
 import com.uteexpress.dto.customer.OrderResponseDto;
-import com.uteexpress.dto.customer.OrderItemDto;
 import com.uteexpress.entity.Order;
-import com.uteexpress.entity.OrderItem;
+// Order items not used in this project
 import org.springframework.stereotype.Component;
-
-import java.util.stream.Collectors;
 
 @Component
 public class OrderMapper {
@@ -25,16 +22,7 @@ public class OrderMapper {
                 .notes(dto.getNotes())
                 .build();
 
-        if (dto.getItems() != null) {
-            order.setItems(dto.getItems().stream()
-                    .map(itemDto -> OrderItem.builder()
-                            .name(itemDto.getName())
-                            .quantity(itemDto.getQuantity())
-                            .unitPrice(itemDto.getUnitPrice())
-                            .order(order)
-                            .build())
-                    .collect(Collectors.toList()));
-        }
+        // Items are not used in this project, skip mapping
 
         return order;
     }
@@ -43,19 +31,45 @@ public class OrderMapper {
         return OrderResponseDto.builder()
                 .orderCode(order.getOrderCode())
                 .senderName(order.getSenderName())
+                .senderPhone(order.getSenderPhone())
+                .senderAddress(order.getSenderAddress())
                 .recipientName(order.getRecipientName())
-                .totalAmount(order.getShipmentFee()) // Simplified for now
+                .recipientPhone(order.getRecipientPhone())
+                .recipientAddress(order.getRecipientAddress())
                 .shipmentFee(order.getShipmentFee())
                 .status(order.getStatus() != null ? order.getStatus().name() : null)
                 .imageUrl(order.getImageUrl())
                 .createdAt(order.getCreatedAt())
-                .items(order.getItems() != null ? order.getItems().stream()
-                        .map(item -> OrderItemDto.builder()
-                                .name(item.getName())
-                                .quantity(item.getQuantity())
-                                .unitPrice(item.getUnitPrice())
-                                .build())
-                        .collect(Collectors.toList()) : null)
+                .updatedAt(order.getUpdatedAt())
+                .notes(order.getNotes())
+                .items(null)
+                .serviceType(order.getServiceType() != null ? order.getServiceType().name() : null)
+                .customerId(order.getCustomer() != null ? order.getCustomer().getId() : null)
+                .shipperId(order.getShipper() != null ? order.getShipper().getId() : null)
+                .build();
+    }
+    
+    public static OrderResponseDto toDtoWithInvoiceAndPayment(Order order, com.uteexpress.entity.Invoice invoice, com.uteexpress.entity.Payment payment) {
+        return OrderResponseDto.builder()
+                .orderCode(order.getOrderCode())
+                .senderName(order.getSenderName())
+                .senderPhone(order.getSenderPhone())
+                .senderAddress(order.getSenderAddress())
+                .recipientName(order.getRecipientName())
+                .recipientPhone(order.getRecipientPhone())
+                .recipientAddress(order.getRecipientAddress())
+                .shipmentFee(order.getShipmentFee())
+                .status(order.getStatus() != null ? order.getStatus().name() : null)
+                .imageUrl(order.getImageUrl())
+                .createdAt(order.getCreatedAt())
+                .updatedAt(order.getUpdatedAt())
+                .notes(order.getNotes())
+                .items(null)
+                .serviceType(order.getServiceType() != null ? order.getServiceType().name() : null)
+                .customerId(order.getCustomer() != null ? order.getCustomer().getId() : null)
+                .shipperId(order.getShipper() != null ? order.getShipper().getId() : null)
+                .invoice(InvoiceMapper.toDto(invoice))
+                .payment(PaymentMapper.toDto(payment))
                 .build();
     }
 }

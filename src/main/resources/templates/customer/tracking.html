@@ -1,34 +1,269 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: head"></head>
+<head th:replace="fragments/header_customer :: head"></head>
 <body class="bg-light">
 
-<nav th:replace="fragments/header :: navbar"></nav>
+<nav th:replace="fragments/header_customer :: navbar"></nav>
 
 <!-- Profile & Password Modals -->
-<div th:replace="fragments/header :: profile-modal"></div>
-<div th:replace="fragments/header :: password-modal"></div>
+<div th:replace="fragments/header_customer :: profile-modal"></div>
+<div th:replace="fragments/change_password_modal :: change-password-modal"></div>
 
 <div class="container mt-4">
-    <h3 class="mb-3">🔎 Theo dõi đơn hàng</h3>
+    <h3 class="mb-3">🔎 Tra cứu đơn</h3>
 
     <div class="row g-2 mb-3">
         <div class="col-auto">
             <input id="orderCode" class="form-control" placeholder="Nhập mã đơn hàng" />
         </div>
         <div class="col-auto">
-            <button id="btnTrack" class="btn btn-primary">Xem trạng thái</button>
+            <button id="btnTrack" class="btn btn-primary">
+                <i class="fas fa-search"></i> Tìm kiếm
+            </button>
         </div>
+    </div>
+    
+    <div id="loading" class="text-center d-none">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+        </div>
+        <p class="mt-2">Đang tìm kiếm đơn hàng...</p>
     </div>
 
     <div id="result" class="card d-none">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-box"></i> Thông tin đơn hàng</h5>
+        </div>
         <div class="card-body">
-            <div class="mb-2"><b>Mã đơn:</b> <span id="resCode"></span></div>
-            <div class="mb-2"><b>Trạng thái:</b> <span id="resStatus" class="badge bg-info"></span></div>
-            <div class="mb-2"><b>Người nhận:</b> <span id="resRecipient"></span></div>
-            <div class="mb-2"><b>Ngày tạo:</b> <span id="resCreated"></span></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mã đơn hàng:</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resCode" class="fw-bold text-primary"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Trạng thái:</label>
+                        <div>
+                            <span id="resStatus" class="badge fs-6"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ngày tạo:</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resCreated"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Cập nhật lần cuối:</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resUpdated"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Loại dịch vụ:</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resServiceType"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Cân nặng (kg):</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resWeight"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ngày lấy hàng:</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resPickupDate"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ngày giao dự kiến:</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resDeliveryDate"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Người gửi:</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resSender"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Số điện thoại người gửi:</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resSenderPhone"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Địa chỉ gửi:</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resSenderAddress"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Người nhận:</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resRecipient"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Số điện thoại người nhận:</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resRecipientPhone"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Địa chỉ nhận:</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resRecipientAddress"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div id="resNotes" class="mb-3 d-none">
+                        <label class="form-label fw-bold">Ghi chú:</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span id="resNotesText"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Financial Information Section -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card bg-light">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fas fa-money-bill-wave"></i> Thông tin tài chính</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="form-label fw-bold text-muted">Phí vận chuyển</div>
+                                        <div class="h5 text-primary" id="resFee"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="form-label fw-bold text-muted">Tiền COD</div>
+                                        <div class="h5 text-info" id="resCodAmount"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="form-label fw-bold text-muted">Thuế</div>
+                                        <div class="h5 text-warning" id="resTaxAmount"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="form-label fw-bold text-muted">Tổng tiền</div>
+                                        <div class="h5 text-success fw-bold" id="resFinalAmount"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Invoice Information Section -->
+            <div id="invoiceSection" class="row mt-4 d-none">
+                <div class="col-12">
+                    <div class="card bg-light">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="fas fa-file-invoice"></i> Thông tin hóa đơn</h6>
+                            <span id="resInvoiceStatus" class="badge fs-6"></span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-2">
+                                        <div class="form-label fw-bold text-muted">Số hóa đơn</div>
+                                        <div class="form-control-plaintext bg-white p-2 rounded" id="resInvoiceNumber">-</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <div class="form-label fw-bold text-muted">Ngày phát hành</div>
+                                        <div class="form-control-plaintext bg-white p-2 rounded" id="resIssuedDate">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-2">
+                                        <div class="form-label fw-bold text-muted">Tổng tiền hóa đơn</div>
+                                        <div class="form-control-plaintext bg-white p-2 rounded" id="resInvoiceTotal">-</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <div class="form-label fw-bold text-muted">Ngày đến hạn</div>
+                                        <div class="form-control-plaintext bg-white p-2 rounded" id="resDueDate">-</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <div class="form-label fw-bold text-muted">Ngày thanh toán</div>
+                                        <div class="form-control-plaintext bg-white p-2 rounded" id="resInvoicePaymentDate">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Information Section -->
+            <div id="paymentSection" class="row mt-3 d-none">
+                <div class="col-12">
+                    <div class="card bg-light">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="fas fa-credit-card"></i> Thông tin thanh toán</h6>
+                            <span id="resPaymentStatus" class="badge fs-6"></span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-2">
+                                        <div class="form-label fw-bold text-muted">Số tiền thanh toán</div>
+                                        <div class="form-control-plaintext bg-white p-2 rounded" id="resPaymentAmount">-</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <div class="form-label fw-bold text-muted">Phương thức thanh toán</div>
+                                        <div class="form-control-plaintext bg-white p-2 rounded" id="resPaymentMethod">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-2">
+                                        <div class="form-label fw-bold text-muted">Mã giao dịch</div>
+                                        <div class="form-control-plaintext bg-white p-2 rounded" id="resTransactionId">-</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <div class="form-label fw-bold text-muted">Ngày thanh toán</div>
+                                        <div class="form-control-plaintext bg-white p-2 rounded" id="resPaymentCreatedAt">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div id="resImageWrap" class="mt-3 d-none">
-                <img id="resImage" src="" alt="Hình ảnh đơn hàng" class="img-fluid rounded border" />
+                <label class="form-label fw-bold">Hình ảnh đơn hàng:</label>
+                <div class="text-center">
+                    <img id="resImage" src="" alt="Hình ảnh đơn hàng" class="img-fluid rounded border shadow" style="max-height: 300px;" />
+                </div>
             </div>
         </div>
     </div>
@@ -37,48 +272,236 @@
 </div>
 
 <script>
+    // Enter key support
+    document.getElementById('orderCode').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('btnTrack').click();
+        }
+    });
+    
     document.getElementById('btnTrack').addEventListener('click', async () => {
         const code = document.getElementById('orderCode').value?.trim();
         const alertBox = document.getElementById('alert');
         const result = document.getElementById('result');
+        const loading = document.getElementById('loading');
+        
         if (!code) {
             alertBox.textContent = 'Vui lòng nhập mã đơn hàng';
             alertBox.classList.remove('d-none');
             result.classList.add('d-none');
+            loading.classList.add('d-none');
             return;
         }
 
         try {
+            // Show loading state
             alertBox.classList.add('d-none');
+            result.classList.add('d-none');
+            loading.classList.remove('d-none');
             const res = await fetch(`/api/customer/orders/${code}/tracking`, {
                 credentials: 'include'
             });
             if (!res.ok) throw new Error('Không tìm thấy đơn hàng');
             const o = await res.json();
+            
+            // Populate basic info
             document.getElementById('resCode').textContent = o.orderCode || code;
-            document.getElementById('resStatus').textContent = o.status || 'N/A';
+            document.getElementById('resSender').textContent = o.senderName || '';
+            document.getElementById('resSenderPhone').textContent = o.senderPhone || '';
+            document.getElementById('resSenderAddress').textContent = o.senderAddress || '';
             document.getElementById('resRecipient').textContent = o.recipientName || '';
-            document.getElementById('resCreated').textContent = (o.createdAt || '').replace('T', ' ');
+            document.getElementById('resRecipientPhone').textContent = o.recipientPhone || '';
+            document.getElementById('resRecipientAddress').textContent = o.recipientAddress || '';
+            document.getElementById('resCreated').textContent = o.createdAt ? new Date(o.createdAt).toLocaleString('vi-VN') : '';
+            // Calculate the most recent updatedAt from order, invoice, and payment
+            const orderUpdatedAt = o.updatedAt ? new Date(o.updatedAt) : null;
+            const invoiceUpdatedAt = o.invoice?.updatedAt ? new Date(o.invoice.updatedAt) : null;
+            const paymentUpdatedAt = o.payment?.updatedAt ? new Date(o.payment.updatedAt) : null;
+            
+            let mostRecentUpdatedAt = orderUpdatedAt;
+            if (invoiceUpdatedAt && (!mostRecentUpdatedAt || invoiceUpdatedAt > mostRecentUpdatedAt)) {
+                mostRecentUpdatedAt = invoiceUpdatedAt;
+            }
+            if (paymentUpdatedAt && (!mostRecentUpdatedAt || paymentUpdatedAt > mostRecentUpdatedAt)) {
+                mostRecentUpdatedAt = paymentUpdatedAt;
+            }
+            
+            document.getElementById('resUpdated').textContent = mostRecentUpdatedAt ? mostRecentUpdatedAt.toLocaleString('vi-VN') : '';
+            
+            // Service and weight info
+            document.getElementById('resServiceType').textContent = getServiceTypeText(o.serviceType) || 'N/A';
+            document.getElementById('resWeight').textContent = o.weight ? o.weight + ' kg' : 0;
+            
+            // Dates
+            document.getElementById('resPickupDate').textContent = o.pickupDate ? new Date(o.pickupDate).toLocaleString('vi-VN') : 'Chưa xác định';
+            document.getElementById('resDeliveryDate').textContent = o.deliveryDate ? new Date(o.deliveryDate).toLocaleString('vi-VN') : 'Chưa xác định';
+            
+            // Financial info
+            document.getElementById('resFee').textContent = o.shipmentFee ? o.shipmentFee.toLocaleString('vi-VN') + ' ₫' : '0 ₫';
+            document.getElementById('resCodAmount').textContent = o.codAmount ? o.codAmount.toLocaleString('vi-VN') + ' ₫' : '0 ₫';
+            document.getElementById('resTaxAmount').textContent = o.invoice?.taxAmount ? o.invoice.taxAmount.toLocaleString('vi-VN') + ' ₫' : '0 ₫';
+            document.getElementById('resFinalAmount').textContent = o.invoice?.finalAmount ? o.invoice.finalAmount.toLocaleString('vi-VN') + ' ₫' : '0 ₫';
+            
+            // Status with color coding
+            const statusElement = document.getElementById('resStatus');
+            const status = o.status || 'N/A';
+            statusElement.textContent = getStatusText(status);
+            statusElement.className = 'badge fs-6 ' + getStatusClass(status);
+            
+            // Notes
+            if (o.notes && o.notes.trim()) {
+                document.getElementById('resNotesText').textContent = o.notes;
+                document.getElementById('resNotes').classList.remove('d-none');
+            } else {
+                document.getElementById('resNotesText').textContent = 'Không có ghi chú';
+                document.getElementById('resNotes').classList.remove('d-none');
+            }
+            
+            // Invoice information
+            const invoiceSection = document.getElementById('invoiceSection');
+            if (o.invoice) {
+                document.getElementById('resInvoiceNumber').textContent = o.invoice.invoiceNumber || '-';
+                document.getElementById('resIssuedDate').textContent = o.invoice.issuedDate ? new Date(o.invoice.issuedDate).toLocaleString('vi-VN') : '-';
+                document.getElementById('resInvoiceTotal').textContent = o.invoice.finalAmount ? o.invoice.finalAmount.toLocaleString('vi-VN') + ' ₫' : '-';
+                document.getElementById('resDueDate').textContent = o.invoice.dueDate ? new Date(o.invoice.dueDate).toLocaleString('vi-VN') : '-';
+                document.getElementById('resInvoicePaymentDate').textContent = o.invoice.paymentDate ? new Date(o.invoice.paymentDate).toLocaleString('vi-VN') : '-';
+                
+                // Set invoice status badge with color
+                const invoiceStatusElement = document.getElementById('resInvoiceStatus');
+                const invoiceStatus = o.invoice.status || 'N/A';
+                invoiceStatusElement.textContent = getInvoiceStatusText(invoiceStatus);
+                invoiceStatusElement.className = 'badge fs-6 ' + getInvoiceStatusClass(invoiceStatus);
+                
+                invoiceSection.classList.remove('d-none');
+            } else {
+                invoiceSection.classList.add('d-none');
+            }
+
+            // Payment information
+            const paymentSection = document.getElementById('paymentSection');
+            if (o.payment) {
+                document.getElementById('resPaymentAmount').textContent = o.payment.amount ? o.payment.amount.toLocaleString('vi-VN') + ' ₫' : '-';
+                document.getElementById('resPaymentMethod').textContent = o.payment.method || '-';
+                document.getElementById('resTransactionId').textContent = o.payment.transactionId || '-';
+                document.getElementById('resPaymentCreatedAt').textContent = o.payment.createdAt ? new Date(o.payment.createdAt).toLocaleString('vi-VN') : '-';
+                
+                // Set payment status badge with color
+                const paymentStatusElement = document.getElementById('resPaymentStatus');
+                const paymentStatus = o.payment.status || 'N/A';
+                paymentStatusElement.textContent = getPaymentStatusText(paymentStatus);
+                paymentStatusElement.className = 'badge fs-6 ' + getPaymentStatusClass(paymentStatus);
+                
+                paymentSection.classList.remove('d-none');
+            } else {
+                paymentSection.classList.add('d-none');
+            }
+            
+            // Image
             if (o.imageUrl) {
                 document.getElementById('resImage').src = o.imageUrl;
                 document.getElementById('resImageWrap').classList.remove('d-none');
             } else {
                 document.getElementById('resImageWrap').classList.add('d-none');
             }
+            
             result.classList.remove('d-none');
+            loading.classList.add('d-none');
         } catch (e) {
             alertBox.textContent = e.message || 'Lỗi khi truy vấn trạng thái đơn hàng';
             alertBox.classList.remove('d-none');
             result.classList.add('d-none');
+            loading.classList.add('d-none');
         }
     });
+    
+    // Helper functions for status display
+    function getStatusText(status) {
+        const statusMap = {
+            'CHO_GIAO': 'Chờ giao',
+            'DANG_GIAO': 'Đang giao',
+            'HOAN_THANH': 'Hoàn thành',
+            'THAT_BAI': 'Thất bại',
+            'HUY': 'Hủy'
+        };
+        return statusMap[status] || status;
+    }
+    
+    function getStatusClass(status) {
+        const classMap = {
+            'CHO_GIAO': 'bg-warning',
+            'DANG_GIAO': 'bg-info',
+            'HOAN_THANH': 'bg-success',
+            'THAT_BAI': 'bg-danger',
+            'HUY': 'bg-secondary'
+        };
+        return classMap[status] || 'bg-secondary';
+    }
+    
+    function getServiceTypeText(serviceType) {
+        const serviceMap = {
+            'CHUAN': 'Chuẩn',
+            'NHANH': 'Nhanh',
+            'TIET_KIEM': 'Tiết kiệm'
+        };
+        return serviceMap[serviceType] || serviceType;
+    }
+    
+    function getInvoiceStatusText(status) {
+        const statusMap = {
+            DRAFT: 'Nháp',
+            PENDING: 'Chờ xử lý',
+            ISSUED: 'Đã phát hành',
+            PAID: 'Đã thanh toán',
+            OVERDUE: 'Quá hạn',
+            CANCELLED: 'Đã hủy'
+        };
+        return statusMap[status] || status;
+    }
+
+    function getInvoiceStatusClass(status) {
+        const classMap = {
+            DRAFT: 'bg-secondary',
+            PENDING: 'bg-warning',
+            ISSUED: 'bg-info',
+            PAID: 'bg-success',
+            OVERDUE: 'bg-danger',
+            CANCELLED: 'bg-danger'
+        };
+        return classMap[status] || 'bg-secondary';
+    }
+
+    function getPaymentStatusText(status) {
+        const statusMap = {
+            PENDING: 'Chờ thanh toán',
+            PROCESSING: 'Đang xử lý',
+            COMPLETED: 'Hoàn thành',
+            FAILED: 'Thất bại',
+            CANCELLED: 'Đã hủy',
+            REFUNDED: 'Đã hoàn tiền'
+        };
+        return statusMap[status] || status;
+    }
+
+    function getPaymentStatusClass(status) {
+        const classMap = {
+            PENDING: 'bg-warning',
+            PROCESSING: 'bg-info',
+            COMPLETED: 'bg-success',
+            FAILED: 'bg-danger',
+            CANCELLED: 'bg-danger',
+            REFUNDED: 'bg-secondary'
+        };
+        return classMap[status] || 'bg-secondary';
+    }
 </script>
 </div>
 
 <footer th:replace="fragments/footer :: footer"></footer>
 
 <!-- Profile Script -->
-<script th:replace="fragments/header :: profile-script"></script>
+<script th:replace="fragments/header_customer :: profile-script"></script>
+<!-- Change Password Script -->
+<script th:replace="fragments/change_password_modal :: change-password-script"></script>
 
 </body>
 </html>

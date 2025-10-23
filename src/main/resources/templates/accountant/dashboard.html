@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: head"></head>
+<head th:replace="fragments/header_accountant :: head"></head>
 <style th:replace="fragments/sidebar_accountant :: sidebar-styles"></style>
 <style>
     .table td {
@@ -40,7 +40,7 @@
 </style>
 <body class="bg-light">
 
-<nav th:replace="fragments/header :: navbar"></nav>
+<nav th:replace="fragments/header_accountant :: navbar"></nav>
 
 <!-- Sidebar -->
 <div th:replace="fragments/sidebar_accountant :: sidebar-accountant"></div>
@@ -261,6 +261,9 @@
 
 <!-- Sidebar Script -->
 <script th:replace="fragments/sidebar_accountant :: sidebar-script"></script>
+
+<!-- Logout Script -->
+<script th:replace="fragments/header_accountant :: logout-script"></script>
 
 </body>
 </html>

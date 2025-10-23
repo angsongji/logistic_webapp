@@ -1,6 +1,5 @@
 package com.uteexpress.entity.customer;
 
-import com.uteexpress.entity.Order;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
@@ -27,6 +26,5 @@ public class Customer {
     private String phone;
     private String avatarUrl;
 
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Order> orders;
+    // Note: orders relationship removed to avoid JPA mapping conflicts with User entity.
 }

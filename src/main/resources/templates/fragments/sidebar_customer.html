@@ -1,0 +1,18 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="accountSidebar(active)">
+  <div class="list-group list-group-flush">
+    <a
+      th:href="@{/web/customer/profile}"
+      class="list-group-item list-group-item-action"
+      th:classappend="${active}=='profile' ? ' active' : ''"
+    >
+      Hồ Sơ
+    </a>
+    <a
+      th:href="@{/web/customer/addresses}"
+      class="list-group-item list-group-item-action"
+      th:classappend="${active}=='addresses' ? ' active' : ''"
+    >
+      Địa Chỉ
+    </a>
+  </div>
+</div>

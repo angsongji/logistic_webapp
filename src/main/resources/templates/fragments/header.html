@@ -1,289 +1,667 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:fragment="head">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head th:fragment="head">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title th:text="${title} ?: 'UTEExpress'">UTEExpress</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <!-- Bootstrap & Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      defer
+    ></script>
+
+    <!-- Optional libs -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"
+      defer
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"
+      defer
+    ></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+
     <style>
-        /* Fixed navbar */
-        .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1030;
-        }
-        body {
-            padding-top: 56px; /* Height of navbar */
-        }
-        .user-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            border: 2px solid white;
-        }
-        .dropdown-menu {
-            min-width: 320px;
-        }
+      .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        border: 2px solid white;
+      }
+      .badge {
+        font-size: 0.7em;
+      }
+      .dropdown-header {
+        font-size: 0.8em;
+        font-weight: 600;
+        color: #6c757d;
+      }
+
+      .dropdown-menu {
+        z-index: 1085;
+        min-width: 320px;
+      }
     </style>
-</head>
-<body>
+  </head>
 
-<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
+  <body>
+    <nav
+      th:fragment="navbar"
+      class="navbar navbar-expand-lg navbar-dark bg-primary"
+    >
+      <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="/web/customer/dashboard">
-            <i class="bi bi-box-seam"></i> UTEExpress
+          <i class="bi bi-box-seam"></i> UTEExpress
         </a>
-        <div class="d-flex align-items-center gap-3">
-            <!-- User Profile Dropdown -->
-            <div class="dropdown">
-                <div class="user-avatar" id="userAvatar" data-bs-toggle="dropdown" aria-expanded="false">
-                    <span id="avatarInitial">U</span>
+
+        <div class="d-flex align-items-center gap-3 ms-auto">
+          <!-- User Profile Dropdown when authenticated -->
+          <div id="userDropdown" class="dropdown d-none">
+            <div
+              class="user-avatar"
+              id="userAvatar"
+              role="button"
+              data-bs-toggle="dropdown"
+              data-bs-auto-close="outside"
+              aria-expanded="false"
+            >
+              <span id="avatarInitial">U</span>
+            </div>
+            <ul
+              class="dropdown-menu dropdown-menu-end shadow"
+              aria-labelledby="userAvatar"
+            >
+              <li class="px-3 py-2 border-bottom">
+                <div class="d-flex align-items-center">
+                  <div class="user-avatar me-2">
+                    <span id="avatarInitial2">U</span>
+                  </div>
+                  <div>
+                    <div class="fw-bold" id="userName">Loading...</div>
+                    <small class="text-muted" id="userEmail"
+                      >loading@example.com</small
+                    >
+                    <small class="badge bg-primary ms-1" id="userRole"
+                      >User</small
+                    >
+                  </div>
                 </div>
-                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userAvatar">
-                    <li class="px-3 py-2 border-bottom">
-                        <div class="d-flex align-items-center">
-                            <div class="user-avatar me-2">
-                                <span id="avatarInitial2">U</span>
-                            </div>
-        <div>
-                                <div class="fw-bold" id="userName">Loading...</div>
-                                <small class="text-muted" id="userEmail">loading@example.com</small>
-                            </div>
-                        </div>
-                    </li>
-                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
-                        <i class="bi bi-person-circle me-2"></i>Thông tin tài khoản
-                    </a></li>
-                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-                        <i class="bi bi-key me-2"></i>Đổi mật khẩu
-                    </a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger" href="/auth/logout">
-                        <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
-                    </a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</nav>
+              </li>
+              <li>
+                <a class="dropdown-item" href="#" id="profileLink">
+                  <i class="bi bi-person-circle me-2"></i>Tài khoản của tôi
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="#"
+                  data-bs-toggle="modal"
+                  data-bs-target="#changePasswordModal"
+                >
+                  <i class="bi bi-key me-2"></i>Đổi mật khẩu
+                </a>
+              </li>
 
-<!-- Profile Modal -->
-<div th:fragment="profile-modal" class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+              <!-- Role-specific menu items -->
+              <li id="accountantMenu" class="d-none">
+                <hr class="dropdown-divider" />
+                <h6 class="dropdown-header">Kế toán</h6>
+                <a class="dropdown-item" href="/web/accountant/dashboard">
+                  <i class="bi bi-calculator me-2"></i>Dashboard Kế toán
+                </a>
+                <a class="dropdown-item" href="/web/accountant/payments">
+                  <i class="bi bi-receipt me-2"></i>Quản lý thanh toán
+                </a>
+              </li>
+
+              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <a
+                  class="dropdown-item text-danger"
+                  href="/auth/logout/clear-cookies"
+                >
+                  <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Profile Modal -->
+    <div
+      th:fragment="profile-modal"
+      class="modal fade"
+      id="profileModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Thông tin tài khoản</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="profileForm">
-                    <div class="mb-3">
-                        <label class="form-label">Tên đăng nhập</label>
-                        <input type="text" class="form-control" id="profileUsername" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" id="profileEmail" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Họ và tên</label>
-                        <input type="text" class="form-control" id="profileFullName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Số điện thoại</label>
-                        <input type="tel" class="form-control" id="profilePhone">
-                    </div>
-                    <div id="profileAlert" class="alert d-none"></div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary" onclick="saveProfile()">Lưu thay đổi</button>
-            </div>
+          <div class="modal-header">
+            <h5 class="modal-title">Tài khoản của tôi</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="profileForm">
+              <div class="mb-3">
+                <label class="form-label">Tên đăng nhập</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="profileUsername"
+                  readonly
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="profileEmail"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Họ và tên</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="profileFullName"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Số điện thoại</label>
+                <input type="tel" class="form-control" id="profilePhone" />
+              </div>
+              <div id="profileAlert" class="alert d-none"></div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Đóng
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="saveProfile()"
+            >
+              Lưu thay đổi
+            </button>
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
-<!-- Change Password Modal -->
-<div th:fragment="password-modal" class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <!-- Change Password Modal -->
+    <div
+      th:fragment="password-modal"
+      class="modal fade"
+      id="changePasswordModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Đổi mật khẩu</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="passwordForm">
-                    <div class="mb-3">
-                        <label class="form-label">Mật khẩu hiện tại</label>
-                        <input type="password" class="form-control" id="currentPassword" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Mật khẩu mới</label>
-                        <input type="password" class="form-control" id="newPassword" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Xác nhận mật khẩu mới</label>
-                        <input type="password" class="form-control" id="confirmNewPassword" required>
-                    </div>
-                    <div id="passwordAlert" class="alert d-none"></div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary" onclick="changePassword()">Đổi mật khẩu</button>
-            </div>
+          <div class="modal-header">
+            <h5 class="modal-title">Đổi mật khẩu</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="passwordForm">
+              <div class="mb-3">
+                <label class="form-label">Mật khẩu hiện tại</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="currentPassword"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Mật khẩu mới</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="newPassword"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Xác nhận mật khẩu mới</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="confirmNewPassword"
+                  required
+                />
+              </div>
+              <div id="passwordAlert" class="alert d-none"></div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Đóng
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="changePassword()"
+            >
+              Đổi mật khẩu
+            </button>
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
-<!-- User Profile Script -->
-<script th:fragment="profile-script">
-    // Load user profile on page load
-    async function loadUserProfile() {
-        try {
-            const res = await fetch('/api/customer/profile', {
-                credentials: 'include'
-            });
-            if (res.ok) {
-                const user = await res.json();
-                
-                // Update avatar initials
-                const initial = user.fullName ? user.fullName.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase();
-                document.getElementById('avatarInitial').textContent = initial;
-                document.getElementById('avatarInitial2').textContent = initial;
-                
-                // Update dropdown info
-                document.getElementById('userName').textContent = user.fullName || user.username;
-                document.getElementById('userEmail').textContent = user.email;
-                
-                // Update profile form
-                document.getElementById('profileUsername').value = user.username || '';
-                document.getElementById('profileEmail').value = user.email || '';
-                document.getElementById('profileFullName').value = user.fullName || '';
-                document.getElementById('profilePhone').value = user.phone || '';
+    <!-- User Profile Script -->
+    <script th:fragment="profile-script">
+      /* ========= Helpers ========= */
+      function getCookie(name) {
+        const v = `; ${document.cookie}`;
+        const p = v.split(`; ${name}=`);
+        return p.length === 2 ? p.pop().split(";").shift() : null;
+      }
+      function setupDropdownOnce() {
+        const trigger = document.getElementById("userAvatar");
+        const menu = trigger ? trigger.nextElementSibling : null;
+        if (!trigger || !menu) return;
+        if (trigger.dataset.dropdownInit === "true") return;
+
+        // Luôn gắn toggle thủ công (đảm bảo hoạt động kể cả khi Bootstrap chưa tải xong)
+        trigger.addEventListener("click", (e) => {
+          e.preventDefault();
+
+          // Toggle thủ công
+          menu.classList.toggle("show");
+          trigger.setAttribute(
+            "aria-expanded",
+            menu.classList.contains("show")
+          );
+
+          // Nếu Bootstrap đã sẵn, gọi thêm inst.toggle() để đồng bộ state & position
+          try {
+            if (window.bootstrap && bootstrap.Dropdown) {
+              let inst = bootstrap.Dropdown.getInstance(trigger);
+              if (!inst)
+                inst = new bootstrap.Dropdown(trigger, {
+                  autoClose: "outside",
+                });
+              // Bootstrap.toggle() sẽ tự xử lý state; nhưng vì ta đã toggle thủ công ở trên,
+              // nên để tránh "lệch pha", chỉ gọi khi cần:
+              // Nếu menu đang mở thủ công mà inst nghĩ là đóng -> gọi inst.show()
+              // Nếu menu đang đóng thủ công mà inst nghĩ là mở -> gọi inst.hide()
+              const isShown = menu.classList.contains("show");
+              const bsShown = menu.classList.contains("show"); // Bootstrap cũng dựa vào class này
+              if (isShown && !bsShown) inst.show();
+              if (!isShown && bsShown) inst.hide();
             }
-        } catch (error) {
-            console.error('Error loading user profile:', error);
+          } catch (err) {
+            console.warn("Bootstrap sync dropdown failed:", err);
+          }
+        });
+
+        // Click ngoài để đóng (cho fallback + cũng hữu ích với Bootstrap)
+        document.addEventListener("click", (e) => {
+          const inside = trigger.contains(e.target) || menu.contains(e.target);
+          if (!inside && menu.classList.contains("show")) {
+            menu.classList.remove("show");
+            trigger.setAttribute("aria-expanded", "false");
+          }
+        });
+
+        trigger.dataset.dropdownInit = "true";
+      }
+      // ===== Sửa lỗi: luôn show theo cookie trước, API chỉ để fill dữ liệu =====
+      async function initNavbar() {
+        // Chạy 1 lần thôi nếu fragment bị include nhiều lần
+        if (window.__navbarInitBound) return;
+        window.__navbarInitBound = true;
+
+        const userDropdown = document.getElementById("userDropdown");
+        if (!userDropdown) return;
+
+        const isAuthCookie = getCookie("is_authenticated") === "true";
+        const roleCookie = getCookie("user_role");
+
+        // 1) Nếu cookie xác thực đúng -> SHOW NGAY (không chờ API)
+        if (isAuthCookie) {
+          userDropdown.classList.remove("d-none"); // <-- quan trọng
+          setupDropdownOnce(); // luôn init toggle
         }
-    }
 
-    // Save profile changes
-    async function saveProfile() {
-        const alertBox = document.getElementById('profileAlert');
-        const formData = {
-            email: document.getElementById('profileEmail').value,
-            fullName: document.getElementById('profileFullName').value,
-            phone: document.getElementById('profilePhone').value
-        };
-
+        // 2) Gọi API để đổ dữ liệu (không ảnh hưởng hiển thị)
+        let role = roleCookie;
         try {
-            const res = await fetch('/api/customer/profile', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify(formData)
-            });
+          const res = await fetch("/api/customer/profile", {
+            credentials: "include",
+          });
+          if (res.ok) {
+            const user = await res.json();
 
-            if (res.ok) {
-                alertBox.className = 'alert alert-success';
-                alertBox.textContent = 'Cập nhật thành công!';
-                alertBox.classList.remove('d-none');
-                
-                // Reload profile
-                await loadUserProfile();
-                
-                setTimeout(() => {
-                    bootstrap.Modal.getInstance(document.getElementById('profileModal')).hide();
-                }, 1500);
+            // avatar / initials
+            const initial = (
+              user.fullName?.charAt(0) ||
+              user.username?.charAt(0) ||
+              "U"
+            ).toUpperCase();
+            const topAvatar = document.getElementById("userAvatar");
+            const innerInitial = document.getElementById("avatarInitial2");
+            if (user.avatarUrl) {
+              if (topAvatar) {
+                topAvatar.style.backgroundImage = `url('${user.avatarUrl}')`;
+                topAvatar.style.backgroundSize = "cover";
+                topAvatar.style.backgroundPosition = "center";
+                const s = document.getElementById("avatarInitial");
+                if (s) s.textContent = "";
+              }
+              if (innerInitial && innerInitial.parentElement) {
+                const box = innerInitial.parentElement;
+                box.style.backgroundImage = `url('${user.avatarUrl}')`;
+                box.style.backgroundSize = "cover";
+                box.style.backgroundPosition = "center";
+                innerInitial.textContent = "";
+              }
             } else {
-                const error = await res.text();
-                alertBox.className = 'alert alert-danger';
-                alertBox.textContent = error || 'Cập nhật thất bại';
-                alertBox.classList.remove('d-none');
+              const a1 = document.getElementById("avatarInitial");
+              const a2 = document.getElementById("avatarInitial2");
+              if (topAvatar) topAvatar.style.backgroundImage = "";
+              if (innerInitial && innerInitial.parentElement)
+                innerInitial.parentElement.style.backgroundImage = "";
+              if (a1) a1.textContent = initial;
+              if (a2) a2.textContent = initial;
             }
-        } catch (error) {
-            console.error('Error saving profile:', error);
-            alertBox.className = 'alert alert-danger';
-            alertBox.textContent = 'Lỗi khi cập nhật thông tin';
-            alertBox.classList.remove('d-none');
-        }
-    }
 
-    // Change password
-    async function changePassword() {
-        const alertBox = document.getElementById('passwordAlert');
-        const currentPassword = document.getElementById('currentPassword').value;
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmNewPassword').value;
+            // text
+            const nm = document.getElementById("userName");
+            const em = document.getElementById("userEmail");
+            if (nm) nm.textContent = user.fullName || user.username || "User";
+            if (em) em.textContent = user.email || "";
+
+            // form modal (nếu tồn tại)
+            const u = document.getElementById("profileUsername");
+            const e1 = document.getElementById("profileEmail");
+            const f = document.getElementById("profileFullName");
+            const p = document.getElementById("profilePhone");
+            if (u) u.value = user.username || "";
+            if (e1) e1.value = user.email || "";
+            if (f) f.value = user.fullName || "";
+            if (p) p.value = user.phone || "";
+
+            // role từ API (nếu có)
+            role =
+              user.roles && user.roles.length
+                ? typeof user.roles[0] === "string"
+                  ? user.roles[0]
+                  : user.roles[0].name || user.roles[0]
+                : roleCookie;
+
+            // Nếu cookie không có mà API ok -> cũng show
+            userDropdown.classList.remove("d-none");
+            setupDropdownOnce();
+          }
+        } catch (err) {
+          // API fail: nếu cookie cũng fail thì ẩn; nếu cookie ok thì đã show ở bước 1
+          if (!isAuthCookie) {
+            userDropdown.classList.add("d-none");
+            return;
+          }
+        }
+
+        // 3) Badge/role-based UI & "Tài khoản của tôi"
+        const badge = document.getElementById("userRole");
+        const acc = document.getElementById("accountantMenu");
+        if (role === "ROLE_ACCOUNTANT") {
+          acc && acc.classList.remove("d-none");
+          if (badge) {
+            badge.textContent = "Kế toán";
+            badge.className = "badge bg-warning ms-1";
+          }
+        } else {
+          if (badge) {
+            badge.textContent = "Khách hàng";
+            badge.className = "badge bg-primary ms-1";
+          }
+        }
+
+        const profileLink = document.getElementById("profileLink");
+        if (profileLink && !profileLink.dataset.bound) {
+          profileLink.addEventListener("click", function (e) {
+            e.preventDefault();
+            if (role === "ROLE_ACCOUNTANT") {
+              const m = new bootstrap.Modal(
+                document.getElementById("profileModal")
+              );
+              m.show();
+            } else {
+              window.location.href = "/web/customer/profile";
+            }
+          });
+          profileLink.dataset.bound = "true";
+        }
+      }
+
+      /* ========= Existing behaviors (unchanged) ========= */
+      async function loadUserProfile() {
+        try {
+          const res = await fetch("/api/customer/profile", {
+            credentials: "include",
+          });
+          if (res.ok) {
+            const user = await res.json();
+            const initial = (
+              user.fullName?.charAt(0) ||
+              user.username?.charAt(0) ||
+              "U"
+            ).toUpperCase();
+
+            // If user has an avatarUrl, use it as background for both avatar elements
+            try {
+              const topAvatar = document.getElementById("userAvatar");
+              const innerInitial = document.getElementById("avatarInitial2");
+
+              if (user.avatarUrl) {
+                // Top avatar (in navbar)
+                if (topAvatar) {
+                  topAvatar.style.backgroundImage = `url('${user.avatarUrl}')`;
+                  topAvatar.style.backgroundSize = "cover";
+                  topAvatar.style.backgroundPosition = "center";
+                  // remove text initial
+                  const initialSpan = document.getElementById("avatarInitial");
+                  if (initialSpan) initialSpan.textContent = "";
+                }
+
+                // Inner avatar (in dropdown list)
+                if (innerInitial && innerInitial.parentElement) {
+                  const innerAvatarContainer = innerInitial.parentElement;
+                  innerAvatarContainer.style.backgroundImage = `url('${user.avatarUrl}')`;
+                  innerAvatarContainer.style.backgroundSize = "cover";
+                  innerAvatarContainer.style.backgroundPosition = "center";
+                  innerInitial.textContent = "";
+                }
+              } else {
+                // No avatar URL -> show initials and clear any previously set background
+                if (topAvatar) {
+                  topAvatar.style.backgroundImage = "";
+                }
+                if (innerInitial && innerInitial.parentElement) {
+                  innerInitial.parentElement.style.backgroundImage = "";
+                }
+                document.getElementById("avatarInitial").textContent = initial;
+                document.getElementById("avatarInitial2").textContent = initial;
+              }
+            } catch (err) {
+              console.error("Error applying avatar image:", err);
+              // Fallback to initials
+              document.getElementById("avatarInitial").textContent = initial;
+              document.getElementById("avatarInitial2").textContent = initial;
+            }
+
+            document.getElementById("userName").textContent =
+              user.fullName || user.username;
+            document.getElementById("userEmail").textContent = user.email;
+
+            document.getElementById("profileUsername").value =
+              user.username || "";
+            document.getElementById("profileEmail").value = user.email || "";
+            document.getElementById("profileFullName").value =
+              user.fullName || "";
+            document.getElementById("profilePhone").value = user.phone || "";
+          } else {
+            showBasicUserInfo();
+          }
+        } catch (e) {
+          console.error("Error loading user profile:", e);
+          showBasicUserInfo();
+        }
+      }
+
+      function showBasicUserInfo() {
+        const role = getCookie("user_role");
+        let username = "User";
+        if (role === "ROLE_CUSTOMER") username = "Khách hàng";
+        else if (role === "ROLE_ACCOUNTANT") username = "Kế toán";
+
+        const initial = username.charAt(0).toUpperCase();
+        document.getElementById("avatarInitial").textContent = initial;
+        document.getElementById("avatarInitial2").textContent = initial;
+        document.getElementById("userName").textContent = username;
+        document.getElementById("userEmail").textContent = "Loading...";
+
+        document.getElementById("profileUsername").value = username;
+        document.getElementById("profileEmail").value = "";
+        document.getElementById("profileFullName").value = "";
+        document.getElementById("profilePhone").value = "";
+      }
+
+      async function saveProfile() {
+        const alertBox = document.getElementById("profileAlert");
+        const formData = {
+          email: document.getElementById("profileEmail").value,
+          fullName: document.getElementById("profileFullName").value,
+          phone: document.getElementById("profilePhone").value,
+        };
+        try {
+          const res = await fetch("/api/customer/profile", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(formData),
+          });
+          if (res.ok) {
+            alertBox.className = "alert alert-success";
+            alertBox.textContent = "Cập nhật thành công!";
+            alertBox.classList.remove("d-none");
+            await loadUserProfile();
+            setTimeout(() => {
+              const inst = bootstrap.Modal.getInstance(
+                document.getElementById("profileModal")
+              );
+              inst && inst.hide();
+            }, 1200);
+          } else {
+            const error = await res.text();
+            alertBox.className = "alert alert-danger";
+            alertBox.textContent = error || "Cập nhật thất bại";
+            alertBox.classList.remove("d-none");
+          }
+        } catch (e) {
+          console.error("Error saving profile:", e);
+          alertBox.className = "alert alert-danger";
+          alertBox.textContent = "Lỗi khi cập nhật thông tin";
+          alertBox.classList.remove("d-none");
+        }
+      }
+
+      async function changePassword() {
+        const alertBox = document.getElementById("passwordAlert");
+        const currentPassword =
+          document.getElementById("currentPassword").value;
+        const newPassword = document.getElementById("newPassword").value;
+        const confirmPassword =
+          document.getElementById("confirmNewPassword").value;
 
         if (newPassword !== confirmPassword) {
-            alertBox.className = 'alert alert-danger';
-            alertBox.textContent = 'Mật khẩu mới không khớp';
-            alertBox.classList.remove('d-none');
-            return;
+          alertBox.className = "alert alert-danger";
+          alertBox.textContent = "Mật khẩu mới không khớp";
+          alertBox.classList.remove("d-none");
+          return;
         }
 
         try {
-            const res = await fetch('/api/customer/change-password', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                    currentPassword,
-                    newPassword
-                })
-            });
+          const res = await fetch("/api/customer/change-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ currentPassword, newPassword }),
+          });
 
-            if (res.ok) {
-                alertBox.className = 'alert alert-success';
-                alertBox.textContent = 'Đổi mật khẩu thành công!';
-                alertBox.classList.remove('d-none');
-                
-                document.getElementById('passwordForm').reset();
-                
-                setTimeout(() => {
-                    bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
-                }, 1500);
-            } else {
-                const error = await res.text();
-                alertBox.className = 'alert alert-danger';
-                alertBox.textContent = error || 'Đổi mật khẩu thất bại';
-                alertBox.classList.remove('d-none');
-            }
-        } catch (error) {
-            console.error('Error changing password:', error);
-            alertBox.className = 'alert alert-danger';
-            alertBox.textContent = 'Lỗi khi đổi mật khẩu';
-            alertBox.classList.remove('d-none');
+          if (res.ok) {
+            alertBox.className = "alert alert-success";
+            alertBox.textContent = "Đổi mật khẩu thành công!";
+            alertBox.classList.remove("d-none");
+            document.getElementById("passwordForm").reset();
+            setTimeout(() => {
+              const inst = bootstrap.Modal.getInstance(
+                document.getElementById("changePasswordModal")
+              );
+              inst && inst.hide();
+            }, 1200);
+          } else {
+            const error = await res.text();
+            alertBox.className = "alert alert-danger";
+            alertBox.textContent = error || "Đổi mật khẩu thất bại";
+            alertBox.classList.remove("d-none");
+          }
+        } catch (e) {
+          console.error("Error changing password:", e);
+          alertBox.className = "alert alert-danger";
+          alertBox.textContent = "Lỗi khi đổi mật khẩu";
+          alertBox.classList.remove("d-none");
         }
-    }
+      }
 
-    // Load profile on page load
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', loadUserProfile);
-    } else {
-        loadUserProfile();
-    }
-</script>
-
-</body>
+      // Gọi init 1 lần
+      document.addEventListener("DOMContentLoaded", initNavbar);
+      window.addEventListener("load", initNavbar);
+    </script>
+  </body>
 </html>

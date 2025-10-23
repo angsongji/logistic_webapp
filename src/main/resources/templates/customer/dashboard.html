@@ -1,169 +1,755 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: head"></head>
-<body class="bg-light">
+  <head th:replace="fragments/header_customer :: head"></head>
+  <body class="bg-light">
+    <nav th:replace="fragments/header_customer :: navbar"></nav>
 
-<nav th:replace="fragments/header :: navbar"></nav>
+    <!-- Profile & Password Modals -->
+    <!-- <div th:replace="fragments/header_customer :: profile-modal"></div> -->
+    <div
+      th:replace="fragments/change_password_modal :: change-password-modal"
+    ></div>
 
-<!-- Profile & Password Modals -->
-<div th:replace="fragments/header :: profile-modal"></div>
-<div th:replace="fragments/header :: password-modal"></div>
-
-<div class="container mt-4">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0">📦 Quản lý đơn hàng</h3>
-        <div class="btn-group" role="group">
-            <a href="/web/customer/orders/new" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Tạo đơn mới
-            </a>
-            <a href="/web/customer/tracking" class="btn btn-primary">
-                <i class="bi bi-search"></i> Theo dõi
-            </a>
+    <div class="container mt-4">
+      <!-- Page header_customer -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">📦 Đơn hàng của tôi</h3>
+        <div class="btn-group d-flex gap-1" role="group">
+          <a href="/web/customer/orders/new" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Tạo đơn mới
+          </a>
+          <a href="/web/customer/tracking" class="btn btn-primary">
+            <i class="bi bi-search"></i> Tra cứu
+          </a>
         </div>
+      </div>
+
+      <!-- Filter tabs -->
+      <ul class="nav nav-tabs mb-3" id="orderTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link active"
+            id="all-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#all"
+            type="button"
+            role="tab"
+          >
+            Tất cả
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="pending-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#pending"
+            type="button"
+            role="tab"
+          >
+            Chờ xử lý
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="shipping-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#shipping"
+            type="button"
+            role="tab"
+          >
+            Đang giao
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="completed-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#completed"
+            type="button"
+            role="tab"
+          >
+            Hoàn thành
+          </button>
+        </li>
+      </ul>
+
+      <!-- Orders Table -->
+      <div class="card">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr class="table-light">
+                  <th>Mã đơn</th>
+                  <th>Địa chỉ giao</th>
+                  <th>Trạng thái</th>
+                  <th>Tổng tiền</th>
+                  <th>Ngày tạo</th>
+                  <th>&nbsp;</th>
+                </tr>
+              </thead>
+              <tbody id="orders-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Detail Modal -->
+      <div
+        class="modal fade"
+        id="orderDetailModal"
+        tabindex="-1"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Chi tiết đơn</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <div id="orderDetailContent">
+                <style>
+                  .modal-order {
+                    font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                      "Helvetica Neue", Arial;
+                  }
+                  .order-card {
+                    background: #fff;
+                    border-radius: 8px;
+                    padding: 18px;
+                    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+                  }
+                  .order-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 12px;
+                  }
+                  .order-meta {
+                    color: #6c757d;
+                    font-size: 13px;
+                  }
+                  .order-section {
+                    margin-top: 14px;
+                  }
+                  .label-sm {
+                    font-weight: 600;
+                    color: #495057;
+                    font-size: 13px;
+                  }
+                  .value-sm {
+                    color: #212529;
+                    font-size: 14px;
+                  }
+                  .amount-box {
+                    background: linear-gradient(90deg, #f8f9fa, #fff);
+                    padding: 12px;
+                    border-radius: 6px;
+                  }
+                  .amount-lg {
+                    font-size: 18px;
+                    font-weight: 700;
+                  }
+                  .dot {
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    display: inline-block;
+                    margin-bottom: 6px;
+                  }
+                  .timeline {
+                    display: flex;
+                    gap: 18px;
+                    align-items: center;
+                  }
+                  .timeline .step {
+                    text-align: center;
+                    width: 110px;
+                  }
+                </style>
+
+                <div class="order-card modal-order">
+                  <div class="order-header">
+                    <div>
+                      <div
+                        style="font-size: 18px; font-weight: 700"
+                        id="detailCode"
+                      >
+                        Mã: -
+                      </div>
+                      <div class="order-meta">
+                        <div>Ngày tạo: <span id="detailCreatedAt">-</span></div>
+                        <div>
+                          Cập nhật lần cuối: <span id="detailUpdatedAt">-</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div style="text-align: right">
+                      <div id="detailStatus"></div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="order-section row"
+                    style="align-items: flex-start"
+                  >
+                    <div
+                      id="detailImageWrap"
+                      class="d-none text-center col-md-5"
+                    >
+                      <div class="label-sm mb-3">
+                        Hình ảnh người gửi cung cấp
+                      </div>
+                      <img
+                        id="detailImage"
+                        src=""
+                        alt="Hình ảnh"
+                        class="img-fluid rounded border"
+                        style="max-height: 140px"
+                      />
+                    </div>
+
+                    <div class="col-md-7">
+                      <div class="row mb-2">
+                        <div class="col-6">
+                          <div class="label-sm">Người gửi</div>
+                          <div class="value-sm" id="detailSender">-</div>
+                          <div class="order-meta" id="detailSenderPhone">-</div>
+                          <div
+                            class="value-sm text-break"
+                            id="detailSenderAddress"
+                          >
+                            -
+                          </div>
+                        </div>
+                        <div class="col-6">
+                          <div class="label-sm">Người nhận</div>
+                          <div class="value-sm" id="detailRecipient">-</div>
+                          <div class="order-meta" id="detailRecipientPhone">
+                            -
+                          </div>
+                          <div
+                            class="value-sm text-break"
+                            id="detailRecipientAddress"
+                          >
+                            -
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row">
+                        <div class="col-6">
+                          <div class="label-sm">Loại dịch vụ</div>
+                          <div class="value-sm" id="detailServiceType">-</div>
+                        </div>
+                        <div class="col-6">
+                          <div class="label-sm">Cân nặng (kg)</div>
+                          <div class="value-sm" id="detailWeight">-</div>
+                        </div>
+                      </div>
+
+                      <div class="row order-section">
+                        <div class="col-12">
+                          <div class="label-sm">Ghi chú</div>
+                          <div class="value-sm text-break" id="detailNotes">
+                            -
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="col-md-5 d-flex flex-column justify-content-end"
+                    >
+                      <div class="amount-box">
+                        <div class="label-sm">Phí vận chuyển</div>
+                        <div class="amount-lg" id="detailShipmentFee">0 ₫</div>
+                        <hr />
+                        <div class="label-sm">Tiền COD</div>
+                        <div class="value-sm" id="detailCodAmount">0 ₫</div>
+                        <hr />
+                        <div class="label-sm">Thuế</div>
+                        <div class="value-sm" id="detailTaxAmount">0 ₫</div>
+                        <hr />
+                        <div class="label-sm">Tổng</div>
+                        <div class="amount-lg" id="detailFinalAmount">0 ₫</div>
+                      </div>
+
+                      <div class="order-section mt-3">
+                        <div class="d-flex justify-content-between">
+                          <div class="label-sm">Ngày lấy hàng</div>
+                          <div class="value-sm" id="detailPickupDate">-</div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                          <div class="label-sm mt-2">Ngày giao dự kiến</div>
+                          <div class="value-sm" id="detailDeliveryDate">-</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Invoice Information Section -->
+                  <div id="invoiceSection" class="order-section mt-4 d-none">
+                    <div class="card bg-light">
+                      <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="fas fa-file-invoice"></i> Thông tin hóa đơn</h6>
+                        <span id="detailInvoiceStatus" class="badge fs-6"></span>
+                      </div>
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-6">
+                            <div class="mb-2">
+                              <div class="label-sm">Số hóa đơn</div>
+                              <div class="value-sm" id="detailInvoiceNumber">-</div>
+                            </div>
+                            <div class="mb-2">
+                              <div class="label-sm">Ngày phát hành</div>
+                              <div class="value-sm" id="detailIssuedDate">-</div>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="mb-2">
+                              <div class="label-sm">Tổng tiền hóa đơn</div>
+                              <div class="value-sm" id="detailInvoiceTotal">-</div>
+                            </div>
+                            <div class="mb-2">
+                              <div class="label-sm">Ngày đến hạn</div>
+                              <div class="value-sm" id="detailDueDate">-</div>
+                            </div>
+                            <div class="mb-2">
+                              <div class="label-sm">Ngày thanh toán</div>
+                              <div class="value-sm" id="detailInvoicePaymentDate">-</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Payment Information Section -->
+                  <div id="paymentSection" class="order-section mt-3 d-none">
+                    <div class="card bg-light">
+                      <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="fas fa-credit-card"></i> Thông tin thanh toán</h6>
+                        <span id="detailPaymentStatus" class="badge fs-6"></span>
+                      </div>
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col-md-6">
+                            <div class="mb-2">
+                              <div class="label-sm">Số tiền thanh toán</div>
+                              <div class="value-sm" id="detailPaymentAmount">-</div>
+                            </div>
+                            <div class="mb-2">
+                              <div class="label-sm">Phương thức thanh toán</div>
+                              <div class="value-sm" id="detailPaymentMethod">-</div>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="mb-2">
+                              <div class="label-sm">Mã giao dịch</div>
+                              <div class="value-sm" id="detailTransactionId">-</div>
+                            </div>
+                            <div class="mb-2">
+                              <div class="label-sm">Ngày thanh toán</div>
+                              <div class="value-sm" id="detailPaymentCreatedAt">-</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-            <!-- Filter tabs -->
-            <ul class="nav nav-tabs mb-3" id="orderTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
-                        Tất cả
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
-                        Chờ xử lý
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button" role="tab">
-                        Đang giao
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab">
-                        Hoàn thành
-                    </button>
-                </li>
-            </ul>
+    <footer th:replace="fragments/footer :: footer"></footer>
 
-            <!-- Orders Table -->
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                            <tr class="table-light">
-                                <th>Mã đơn</th>
-                                <th>Địa chỉ giao</th>
-                                <th>Trạng thái</th>
-                                <th>Tổng tiền</th>
-                                <th>Ngày tạo</th>
-                                <th>Thao tác</th>
-                            </tr>
-                            </thead>
-                            <tbody id="orders-table">
-                                <tr>
-                                    <td colspan="6" class="text-center">
-                                        <div class="spinner-border" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-</div>
+    <!-- Profile Script -->
+    <script th:replace="fragments/header_customer :: profile-script"></script>
 
-<footer th:replace="fragments/footer :: footer"></footer>
+    <script>
+      let allOrders = [];
 
-<!-- Profile Script -->
-<script th:replace="fragments/header :: profile-script"></script>
-
-<script>
-    let allOrders = [];
-
-    async function loadOrders() {
+      async function loadOrders(status) {
         try {
-            const res = await fetch('/api/customer/orders', {
-                credentials: 'include'
-            });
-            if (!res.ok) {
-                throw new Error('Failed to load orders');
+          let url = "/api/customer/orders";
+          if (status) url += "?status=" + status;
+          const res = await fetch(url, {
+            credentials: "include",
+          });
+          if (!res.ok) {
+            let text = "";
+            try {
+              text = await res.text();
+            } catch (e) {
+              text = "";
             }
-            allOrders = await res.json();
-            displayOrders(allOrders);
+            throw new Error(
+              "Failed to load orders: " +
+                res.status +
+                " " +
+                res.statusText +
+                (text ? " - " + text : "")
+            );
+          }
+          const data = await res.json();
+          console.log("API Response:", data);
+          
+          // Handle different response structures
+          if (Array.isArray(data)) {
+            allOrders = data;
+          } else if (data && Array.isArray(data.orders)) {
+            allOrders = data.orders;
+          } else if (data && Array.isArray(data.invoices)) {
+            allOrders = data.invoices;
+          } else if (data && Array.isArray(data.data)) {
+            allOrders = data.data;
+          } else {
+            // If it's a single object, wrap it in an array
+            allOrders = [data];
+          }
+          
+          displayOrders(allOrders);
         } catch (error) {
-            console.error('Error loading orders:', error);
-            document.getElementById('orders-table').innerHTML = 
-                '<tr><td colspan="6" class="text-center text-muted">Không có đơn hàng nào</td></tr>';
+          console.error("Error loading orders:", error);
+          document.getElementById("orders-table").innerHTML =
+            '<tr><td colspan="6" class="text-center text-muted">Không có đơn hàng nào</td></tr>';
         }
-    }
+      }
 
-    function displayOrders(orders) {
-        const tbody = document.getElementById('orders-table');
-        if (orders.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Không có đơn hàng nào</td></tr>';
-            return;
+      function displayOrders(orders) {
+        const tbody = document.getElementById("orders-table");
+        if (!orders || orders.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" class="text-center text-muted">Không có đơn hàng nào</td></tr>';
+          return;
         }
 
-        tbody.innerHTML = orders.map(o => {
-            const statusBadge = getStatusBadge(o.status);
+        tbody.innerHTML = orders
+          .map((o) => {
+            console.log("Order data:", o);
+            
+            // Handle different data structures from accountant API
+            const statusBadge = getStatusBadge(o.status || o.orderStatus);
+            
+            // Try different field names for order code
+            const code = o.orderCode || o.invoiceNumber || o.id || "N/A";
+            
+            // Try different field names for address
+            const recipient_address = o.recipientAddress || o.deliveryAddress || "N/A";
+            
+            // Try different field names for amount
+            const total_amount = o.totalAmount || o.finalAmount || o.amount || 0;
+            
+            // Try different field names for date
+            const created = o.createdAt || o.issueDate || o.createdDate
+              ? new Date(o.createdAt || o.issueDate || o.createdDate).toLocaleString("vi-VN")
+              : "-";
+
             return `
-                <tr>
-                    <td><strong>#${o.id || 'N/A'}</strong></td>
-                    <td class="text-truncate" style="max-width: 200px;">${o.deliveryAddress || 'N/A'}</td>
-                    <td>${statusBadge}</td>
-                    <td><strong>${(o.totalAmount || 0).toLocaleString('vi-VN')} ₫</strong></td>
-                    <td>${new Date(o.createdAt).toLocaleString('vi-VN')}</td>
-                    <td>
-                        <a href="/web/customer/tracking?code=${o.orderCode || o.id}" class="btn btn-sm btn-outline-primary">
-                            Xem chi tiết
-                        </a>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-    }
+        <tr>
+          <td><strong>${code}</strong></td>
+          <td class="text-truncate" style="max-width: 200px;">${recipient_address}</td>
+          <td>${statusBadge}</td>
+          <td><strong>${Number(total_amount).toLocaleString(
+            "vi-VN"
+          )} ₫</strong></td>
+          <td>${created}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" onclick="showOrderDetail('${encodeURIComponent(
+              code
+            )}')">Xem chi tiết</button>
+          </td>
+        </tr>
+      `;
+          })
+          .join("");
+      }
 
-    function getStatusBadge(status) {
+      function getStatusBadge(status) {
         const statusMap = {
-            'PENDING': '<span class="badge bg-warning">Chờ xử lý</span>',
-            'CONFIRMED': '<span class="badge bg-info">Đã xác nhận</span>',
-            'PICKING_UP': '<span class="badge bg-primary">Đang lấy hàng</span>',
-            'IN_TRANSIT': '<span class="badge bg-primary">Đang giao</span>',
-            'DELIVERING': '<span class="badge bg-primary">Đang giao</span>',
-            'DELIVERED': '<span class="badge bg-success">Hoàn thành</span>',
-            'CANCELLED': '<span class="badge bg-danger">Đã hủy</span>',
-            'RETURNED': '<span class="badge bg-secondary">Hoàn trả</span>'
+          // English variants
+          PENDING: '<span class="badge bg-warning">Chờ xử lý</span>',
+          CONFIRMED: '<span class="badge bg-info">Đã xác nhận</span>',
+          PICKING_UP: '<span class="badge bg-primary">Đang lấy hàng</span>',
+          IN_TRANSIT: '<span class="badge bg-primary">Đang giao</span>',
+          DELIVERING: '<span class="badge bg-primary">Đang giao</span>',
+          DELIVERED: '<span class="badge bg-success">Hoàn thành</span>',
+          CANCELLED: '<span class="badge bg-danger">Đã hủy</span>',
+          RETURNED: '<span class="badge bg-secondary">Hoàn trả</span>',
+          // Vietnamese enum names used in entity
+          CHO_GIAO: '<span class="badge bg-warning">Chờ xử lý</span>',
+          DANG_GIAO: '<span class="badge bg-primary">Đang giao</span>',
+          HOAN_THANH: '<span class="badge bg-success">Hoàn thành</span>',
+          THAT_BAI: '<span class="badge bg-danger">Thất bại</span>',
+          HUY: '<span class="badge bg-danger">Đã hủy</span>',
         };
-        return statusMap[status] || `<span class="badge bg-secondary">${status}</span>`;
-    }
+        return (
+          statusMap[status] ||
+          `<span class="badge bg-secondary">${status}</span>`
+        );
+      }
 
-    // Tab filtering
-    document.getElementById('all-tab').addEventListener('click', () => {
-        displayOrders(allOrders);
-    });
+      function getInvoiceStatusText(status) {
+        const statusMap = {
+          DRAFT: 'Nháp',
+          PENDING: 'Chờ xử lý',
+          ISSUED: 'Đã phát hành',
+          PAID: 'Đã thanh toán',
+          OVERDUE: 'Quá hạn',
+          CANCELLED: 'Đã hủy'
+        };
+        return statusMap[status] || status;
+      }
 
-    document.getElementById('pending-tab').addEventListener('click', () => {
-        const filtered = allOrders.filter(o => o.status === 'PENDING' || o.status === 'CONFIRMED');
-        displayOrders(filtered);
-    });
+      function getInvoiceStatusClass(status) {
+        const classMap = {
+          DRAFT: 'bg-secondary',
+          PENDING: 'bg-warning',
+          ISSUED: 'bg-info',
+          PAID: 'bg-success',
+          OVERDUE: 'bg-danger',
+          CANCELLED: 'bg-danger'
+        };
+        return classMap[status] || 'bg-secondary';
+      }
 
-    document.getElementById('shipping-tab').addEventListener('click', () => {
-        const filtered = allOrders.filter(o => o.status === 'PICKING_UP' || o.status === 'IN_TRANSIT' || o.status === 'DELIVERING');
-        displayOrders(filtered);
-    });
+      function getPaymentStatusText(status) {
+        const statusMap = {
+          PENDING: 'Chờ thanh toán',
+          PROCESSING: 'Đang xử lý',
+          COMPLETED: 'Hoàn thành',
+          FAILED: 'Thất bại',
+          CANCELLED: 'Đã hủy',
+          REFUNDED: 'Đã hoàn tiền'
+        };
+        return statusMap[status] || status;
+      }
 
-    document.getElementById('completed-tab').addEventListener('click', () => {
-        const filtered = allOrders.filter(o => o.status === 'DELIVERED');
-        displayOrders(filtered);
-    });
+      function getPaymentStatusClass(status) {
+        const classMap = {
+          PENDING: 'bg-warning',
+          PROCESSING: 'bg-info',
+          COMPLETED: 'bg-success',
+          FAILED: 'bg-danger',
+          CANCELLED: 'bg-danger',
+          REFUNDED: 'bg-secondary'
+        };
+        return classMap[status] || 'bg-secondary';
+      }
 
-    loadOrders();
-</script>
+      // Tab filtering
+      document.getElementById("all-tab").addEventListener("click", () => {
+        loadOrders();
+      });
 
-</body>
+      // Chờ xử lý -> CHO_GIAO
+      document.getElementById("pending-tab").addEventListener("click", () => {
+        loadOrders("CHO_GIAO");
+      });
+
+      // Đang giao -> DANG_GIAO
+      document.getElementById("shipping-tab").addEventListener("click", () => {
+        loadOrders("DANG_GIAO");
+      });
+
+      // Hoàn thành -> HOAN_THANH
+      document.getElementById("completed-tab").addEventListener("click", () => {
+        loadOrders("HOAN_THANH");
+      });
+
+      // initial load: all orders
+      loadOrders();
+
+      // Fetch and show order detail in modal
+      async function showOrderDetail(code) {
+        try {
+          const res = await fetch(
+            `/api/customer/orders/${decodeURIComponent(code)}`,
+            { credentials: "include" }
+          );
+          if (!res.ok) throw new Error("Không tìm thấy đơn hàng");
+          const o = await res.json();
+
+          // helper setters that check element exists
+          const setText = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+            else console.warn("Missing element for id", id, "value", value);
+          };
+          const setHtml = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = value;
+            else console.warn("Missing element for id", id, "html", value);
+          };
+
+          setText("detailCode", o.orderCode || "");
+          setHtml("detailStatus", getStatusBadge(o.status || ""));
+
+          setText("detailSender", o.senderName || "");
+          setText("detailSenderPhone", o.senderPhone || "");
+          setText("detailSenderAddress", o.senderAddress || "");
+
+          setText("detailRecipient", o.recipientName || "");
+          setText("detailRecipientPhone", o.recipientPhone || "");
+          setText("detailRecipientAddress", o.recipientAddress || "");
+
+          setText(
+            "detailShipmentFee",
+            (o.shipmentFee || 0).toLocaleString("vi-VN") + " ₫"
+          );
+          setText(
+            "detailCodAmount",
+            (o.codAmount || 0).toLocaleString("vi-VN") + " ₫"
+          );
+          setText(
+            "detailTaxAmount",
+            (o.invoice?.taxAmount || 0).toLocaleString("vi-VN") + " ₫"
+          );
+          setText(
+            "detailFinalAmount",
+            (o.invoice?.finalAmount || 0).toLocaleString("vi-VN") + " ₫"
+          );
+          setText("detailServiceType", o.serviceType || "");
+          setText("detailWeight", o.weight || 0);
+          setText("detailNotes", o.notes || "Không có");
+          setText(
+            "detailCreatedAt",
+            o.createdAt ? new Date(o.createdAt).toLocaleString("vi-VN") : "-"
+          );
+          // Calculate the most recent updatedAt from order, invoice, and payment
+          const orderUpdatedAt = o.updatedAt ? new Date(o.updatedAt) : null;
+          const invoiceUpdatedAt = o.invoice?.updatedAt ? new Date(o.invoice.updatedAt) : null;
+          const paymentUpdatedAt = o.payment?.updatedAt ? new Date(o.payment.updatedAt) : null;
+          
+          let mostRecentUpdatedAt = orderUpdatedAt;
+          if (invoiceUpdatedAt && (!mostRecentUpdatedAt || invoiceUpdatedAt > mostRecentUpdatedAt)) {
+            mostRecentUpdatedAt = invoiceUpdatedAt;
+          }
+          if (paymentUpdatedAt && (!mostRecentUpdatedAt || paymentUpdatedAt > mostRecentUpdatedAt)) {
+            mostRecentUpdatedAt = paymentUpdatedAt;
+          }
+          
+          setText(
+            "detailUpdatedAt",
+            mostRecentUpdatedAt ? mostRecentUpdatedAt.toLocaleString("vi-VN") : "-"
+          );
+
+          // Invoice information
+          const invoiceSection = document.getElementById("invoiceSection");
+          if (o.invoice) {
+            setText("detailInvoiceNumber", o.invoice.invoiceNumber || "-");
+            setText("detailIssuedDate", o.invoice.issuedDate ? new Date(o.invoice.issuedDate).toLocaleString("vi-VN") : "-");
+            setText("detailInvoiceTotal", o.invoice.finalAmount ? o.invoice.finalAmount.toLocaleString("vi-VN") + " ₫" : "-");
+            setText("detailDueDate", o.invoice.dueDate ? new Date(o.invoice.dueDate).toLocaleString("vi-VN") : "-");
+            setText("detailInvoicePaymentDate", o.invoice.paymentDate ? new Date(o.invoice.paymentDate).toLocaleString("vi-VN") : "-");
+            
+            // Set invoice status badge with color
+            const invoiceStatusElement = document.getElementById("detailInvoiceStatus");
+            const invoiceStatus = o.invoice.status || "N/A";
+            invoiceStatusElement.textContent = getInvoiceStatusText(invoiceStatus);
+            invoiceStatusElement.className = "badge fs-6 " + getInvoiceStatusClass(invoiceStatus);
+            
+            invoiceSection.classList.remove("d-none");
+          } else {
+            invoiceSection.classList.add("d-none");
+          }
+
+          // Payment information
+          const paymentSection = document.getElementById("paymentSection");
+          if (o.payment) {
+            setText("detailPaymentAmount", o.payment.amount ? o.payment.amount.toLocaleString("vi-VN") + " ₫" : "-");
+            setText("detailPaymentMethod", o.payment.method || "-");
+            setText("detailTransactionId", o.payment.transactionId || "-");
+            setText("detailPaymentCreatedAt", o.payment.createdAt ? new Date(o.payment.createdAt).toLocaleString("vi-VN") : "-");
+            
+            // Set payment status badge with color
+            const paymentStatusElement = document.getElementById("detailPaymentStatus");
+            const paymentStatus = o.payment.status || "N/A";
+            paymentStatusElement.textContent = getPaymentStatusText(paymentStatus);
+            paymentStatusElement.className = "badge fs-6 " + getPaymentStatusClass(paymentStatus);
+            
+            paymentSection.classList.remove("d-none");
+          } else {
+            paymentSection.classList.add("d-none");
+          }
+
+          // image handling: show image if imageUrl exists, otherwise show fallback text
+          const imgWrap = document.getElementById("detailImageWrap");
+          const imgEl = document.getElementById("detailImage");
+          // remove any previous fallback text
+          const prevFallback = document.getElementById("detailImageFallback");
+          if (prevFallback) prevFallback.remove();
+          if (o.imageUrl) {
+            if (imgEl) imgEl.src = o.imageUrl;
+            if (imgWrap) imgWrap.classList.remove("d-none");
+            if (imgEl) imgEl.style.display = "inline-block";
+          } else {
+            // hide image and show fallback text
+            if (imgEl) imgEl.style.display = "none";
+            if (imgWrap) {
+              imgWrap.classList.remove("d-none");
+              const span = document.createElement("div");
+              span.id = "detailImageFallback";
+              span.className = "text-muted mt-2 small";
+              span.textContent = "Người gửi không cung cấp ảnh";
+              imgWrap.appendChild(span);
+            }
+          }
+
+          const modal = new bootstrap.Modal(
+            document.getElementById("orderDetailModal")
+          );
+          modal.show();
+        } catch (e) {
+          console.error("Error loading order detail", e);
+          alert(e.message || "Lỗi khi tải chi tiết đơn");
+        }
+      }
+
+      // Ensure dropdown works on dashboard
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(() => {
+          const trigger = document.getElementById("userAvatar");
+          if (trigger && !trigger.dataset.dropdownInitialized) {
+            try {
+              if (window.bootstrap && bootstrap.Dropdown) {
+                if (!bootstrap.Dropdown.getInstance(trigger)) {
+                  new bootstrap.Dropdown(trigger, {
+                    autoClose: "outside",
+                  });
+                }
+              }
+              trigger.dataset.dropdownInitialized = "true";
+            } catch (e) {
+              console.warn("Failed to initialize dropdown:", e);
+            }
+          }
+        }, 500);
+      });
+    </script>
+  </body>
 </html>

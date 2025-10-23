@@ -3,8 +3,8 @@ package com.uteexpress.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.math.BigDecimal;
 import java.util.List;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "orders")
@@ -57,7 +57,7 @@ public class Order {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
-    private com.uteexpress.entity.customer.Customer customer;
+    private User customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shipper_id")

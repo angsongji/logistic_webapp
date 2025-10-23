@@ -19,6 +19,8 @@ public class OrderRequestDto {
     private String recipientAddress;
     private Order.ServiceType serviceType;
     private BigDecimal shipmentFee;
+    private Double weight;
+    private Double codAmount;
     private String notes;
     private List<OrderItemDto> items;
     private MultipartFile image;

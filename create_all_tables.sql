@@ -526,7 +526,7 @@ INSERT INTO users (username, email, password, full_name, phone, is_active) VALUE
 ('admin', 'admin@uteexpress.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye1J8JGO.6Q3NQvDJTLLKgVMF9s0Lhpgu', 'Admin System', '0900000000', TRUE),
 ('customer1', 'customer1@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye1J8JGO.6Q3NQvDJTLLKgVMF9s0Lhpgu', 'Nguyễn Văn A', '0901234567', TRUE),
 ('shipper1', 'shipper1@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye1J8JGO.6Q3NQvDJTLLKgVMF9s0Lhpgu', 'Trần Văn B', '0912345678', TRUE),
-('accountant1', 'accountant1@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye1J8JGO.6Q3NQvDJTLLKgVMF9s0Lhpgu', 'Lê Thị C', '0923456789', TRUE);
+('accountant1', 'accountant1@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye1J8JGO.6Q3NQvDJTLLKgVMF9s0Lhpgu', 'Lê Thị C', '0923456789', TRUE),
 ('shipper2', 'shipper2@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye1J8JGO.6Q3NQvDJTLLKgVMF9s0Lhpgu', 'Nguyễn Văn C', '0913456789', TRUE),
 ('shipper3', 'shipper3@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye1J8JGO.6Q3NQvDJTLLKgVMF9s0Lhpgu', 'Lê Văn D', '0914567890', TRUE),
 ('customer2', 'customer2@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMye1J8JGO.6Q3NQvDJTLLKgVMF9s0Lhpgu', 'Trần Thị E', '0915678901', TRUE),
