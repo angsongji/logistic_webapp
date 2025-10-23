@@ -4,12 +4,19 @@ import com.uteexpress.dto.DashboardSummaryDTO;
 import com.uteexpress.dto.InvoiceDTO;
 import com.uteexpress.dto.InvoiceDetailDTO;
 import com.uteexpress.dto.PaymentDTO;
+import com.uteexpress.dto.accountant.CommissionDto;
+import com.uteexpress.dto.accountant.FinancialReportDto;
+import com.uteexpress.entity.Commission.CommissionStatus;
 import com.uteexpress.entity.Debt;
+import com.uteexpress.entity.FinancialReport;
 import com.uteexpress.entity.Invoice;
 import com.uteexpress.entity.Order;
 import com.uteexpress.entity.Payment;
 import com.uteexpress.entity.User;
 import com.uteexpress.repository.*;
+import com.uteexpress.service.accountant.CommissionService;
+import com.uteexpress.service.accountant.FinancialReportService;
+import com.uteexpress.service.accountant.PaymentService;
 import com.uteexpress.service.customer.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -35,6 +42,9 @@ public class AccountantRestController {
     private final PaymentRepository paymentRepository;
     private final InvoiceRepository invoiceRepository;
     private final DebtRepository debtRepository;
+    private final CommissionService commissionService;
+    private final FinancialReportService financialReportService;
+    private final PaymentService paymentService;
     private final CustomerService customerService;
 
     // ================================================================
@@ -125,6 +135,26 @@ public class AccountantRestController {
     @GetMapping("/payments/status/{status}")
     public ResponseEntity<List<PaymentDTO>> getPaymentsByStatus(@PathVariable String status) {
         List<Payment> payments = paymentRepository.findByStatus(status);
+        List<PaymentDTO> paymentDTOs = payments.stream()
+                .map(this::convertToPaymentDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(paymentDTOs);
+    }
+
+    @GetMapping("/payments/method/{method}")
+    public ResponseEntity<List<PaymentDTO>> getPaymentsByMethod(@PathVariable String method) {
+        List<Payment> payments = paymentService.getPaymentsByMethod(method);
+        List<PaymentDTO> paymentDTOs = payments.stream()
+                .map(this::convertToPaymentDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(paymentDTOs);
+    }
+
+    @GetMapping("/payments/date-range")
+    public ResponseEntity<List<PaymentDTO>> getPaymentsByDateRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<Payment> payments = paymentService.getPaymentsByDateRange(startDate, endDate);
         List<PaymentDTO> paymentDTOs = payments.stream()
                 .map(this::convertToPaymentDTO)
                 .collect(Collectors.toList());
@@ -235,14 +265,163 @@ public class AccountantRestController {
     }
 
     // ================================================================
-    // REPORTS
+    // FINANCIAL REPORTS (Báo cáo tài chính)
     // ================================================================
+    @GetMapping("/reports")
+    public ResponseEntity<List<FinancialReport>> getAllFinancialReports() {
+        List<FinancialReport> reports = financialReportService.getAllReports();
+        return ResponseEntity.ok(reports);
+    }
+
+    @GetMapping("/reports/{id}")
+    public ResponseEntity<FinancialReport> getFinancialReportById(@PathVariable Long id) {
+        try {
+            FinancialReport report = financialReportService.getReportById(id);
+            return ResponseEntity.ok(report);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/reports/type/{type}")
+    public ResponseEntity<List<FinancialReport>> getReportsByType(@PathVariable String type) {
+        try {
+            FinancialReport.ReportType reportType = FinancialReport.ReportType.valueOf(type);
+            List<FinancialReport> reports = financialReportService.getReportsByType(reportType);
+            return ResponseEntity.ok(reports);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/reports/generate")
+    public ResponseEntity<FinancialReport> generateFinancialReport(
+            @RequestParam String reportType,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            FinancialReport.ReportType type = FinancialReport.ReportType.valueOf(reportType);
+            FinancialReport report = financialReportService.generateReport(type, startDate, endDate);
+            return ResponseEntity.ok(report);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @GetMapping("/reports/summary")
     public ResponseEntity<DashboardSummaryDTO> getReportSummary(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         
         return getDashboardSummary(startDate, endDate);
+    }
+
+    @GetMapping("/reports/financial-summary")
+    public ResponseEntity<FinancialReportDto> getFinancialSummary(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        FinancialReportDto summary = financialReportService.getFinancialSummary(startDate, endDate);
+        return ResponseEntity.ok(summary);
+    }
+
+    // ================================================================
+    // COMMISSIONS (Quản lý hoa hồng shipper)
+    // ================================================================
+    @GetMapping("/commissions")
+    public ResponseEntity<List<CommissionDto>> getAllCommissions() {
+        List<CommissionDto> commissions = commissionService.getAllCommissions();
+        return ResponseEntity.ok(commissions);
+    }
+
+    @GetMapping("/commissions/{id}")
+    public ResponseEntity<CommissionDto> getCommissionById(@PathVariable Long id) {
+        try {
+            CommissionDto commission = commissionService.getCommissionById(id);
+            return ResponseEntity.ok(commission);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/commissions/shipper/{shipperId}")
+    public ResponseEntity<List<CommissionDto>> getCommissionsByShipper(@PathVariable Long shipperId) {
+        List<CommissionDto> commissions = commissionService.getCommissionsByShipper(shipperId);
+        return ResponseEntity.ok(commissions);
+    }
+
+    @GetMapping("/commissions/status/{status}")
+    public ResponseEntity<List<CommissionDto>> getCommissionsByStatus(@PathVariable String status) {
+        try {
+            CommissionStatus commissionStatus = CommissionStatus.valueOf(status);
+            List<CommissionDto> commissions = commissionService.getCommissionsByStatus(commissionStatus);
+            return ResponseEntity.ok(commissions);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/commissions/pending")
+    public ResponseEntity<List<CommissionDto>> getPendingCommissions() {
+        List<CommissionDto> commissions = commissionService.getCommissionsByStatus(CommissionStatus.PENDING);
+        return ResponseEntity.ok(commissions);
+    }
+
+    @GetMapping("/commissions/date-range")
+    public ResponseEntity<List<CommissionDto>> getCommissionsByDateRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<CommissionDto> commissions = commissionService.getCommissionsByDateRange(startDate, endDate);
+        return ResponseEntity.ok(commissions);
+    }
+
+    @PostMapping("/commissions/{id}/approve")
+    public ResponseEntity<CommissionDto> approveCommission(@PathVariable Long id) {
+        try {
+            CommissionDto commission = commissionService.approveCommission(id);
+            return ResponseEntity.ok(commission);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PostMapping("/commissions/{id}/pay")
+    public ResponseEntity<CommissionDto> payCommission(@PathVariable Long id) {
+        try {
+            CommissionDto commission = commissionService.payCommission(id);
+            return ResponseEntity.ok(commission);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PostMapping("/commissions/{id}/cancel")
+    public ResponseEntity<CommissionDto> cancelCommission(@PathVariable Long id) {
+        try {
+            CommissionDto commission = commissionService.cancelCommission(id);
+            return ResponseEntity.ok(commission);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PutMapping("/commissions/{id}")
+    public ResponseEntity<CommissionDto> updateCommission(
+            @PathVariable Long id, 
+            @RequestBody CommissionDto updateData) {
+        try {
+            CommissionDto commission = commissionService.updateCommission(id, updateData);
+            return ResponseEntity.ok(commission);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @GetMapping("/commissions/shipper/{shipperId}/pending-total")
+    public ResponseEntity<Double> getTotalPendingCommission(@PathVariable Long shipperId) {
+        Double total = commissionService.getTotalPendingCommission(shipperId);
+        return ResponseEntity.ok(total);
     }
 
     // ================================================================

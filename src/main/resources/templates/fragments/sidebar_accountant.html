@@ -115,7 +115,7 @@
         
         <nav class="sidebar-nav">
             <div class="nav-item">
-                <a href="/web/accountant/dashboard" class="nav-link active" id="nav-dashboard">
+                <a href="/web/accountant/dashboard" class="nav-link" id="nav-dashboard">
                     <i class="bi bi-speedometer2"></i>
                     <span>Dashboard</span>
                 </a>
@@ -145,12 +145,6 @@
                     <span>Hoa hồng</span>
                 </a>
             </div>
-            <div class="nav-item">
-              <a href="/web/accountant/debts" class="nav-link" id="nav-debts">
-                  <i class="bi bi-exclamation-triangle"></i>
-                  <span>Công nợ</span>
-              </a>
-          </div>
         </nav>
     </div>
 
@@ -159,18 +153,36 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Get current path
             const currentPath = window.location.pathname;
+            console.log('Current path:', currentPath);
             
-            // Remove all active classes
-            document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+            // Remove all active classes first
+            document.querySelectorAll('.accountant-sidebar .nav-link').forEach(link => {
                 link.classList.remove('active');
             });
             
             // Add active class to current page
-            document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
-                if (link.getAttribute('href') === currentPath) {
+            let found = false;
+            document.querySelectorAll('.accountant-sidebar .nav-link').forEach(link => {
+                const linkHref = link.getAttribute('href');
+                console.log('Checking link:', linkHref);
+                
+                if (linkHref === currentPath) {
                     link.classList.add('active');
+                    console.log('Active set for:', linkHref);
+                    found = true;
                 }
             });
+            
+            // If no exact match found, try partial match (for subpages)
+            if (!found) {
+                document.querySelectorAll('.accountant-sidebar .nav-link').forEach(link => {
+                    const linkHref = link.getAttribute('href');
+                    if (currentPath.startsWith(linkHref) && linkHref !== '/') {
+                        link.classList.add('active');
+                        console.log('Active set (partial match) for:', linkHref);
+                    }
+                });
+            }
         });
     </script>
 </body>

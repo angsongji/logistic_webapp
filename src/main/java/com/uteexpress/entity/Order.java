@@ -3,6 +3,7 @@ package com.uteexpress.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.math.BigDecimal;
 
 @Entity
@@ -58,27 +59,12 @@ public class Order {
     @JoinColumn(name = "customer_id")
     private User customer;
 
-    // optional shipper (may be null)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shipper_id")
-    private User shipper;
+    private Shipper shipper;
 
-    @Column(name = "cod_amount")
-    private BigDecimal codAmount;
-
-    @Column(name = "total_amount")
-    private BigDecimal totalAmount;
-
-    @Column(name = "weight")
-    private BigDecimal weight;
-
-    @Column(name = "pickup_date")
-    private LocalDateTime pickupDate;
-
-    @Column(name = "delivery_date")
-    private LocalDateTime deliveryDate;
-
-    // items removed: project does not use order_items table
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> items;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

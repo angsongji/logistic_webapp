@@ -50,6 +50,9 @@ public class FinancialReport {
     @Column
     private BigDecimal operationalExpenses;
 
+    @Column(name = "total_orders")
+    private Integer totalOrders;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

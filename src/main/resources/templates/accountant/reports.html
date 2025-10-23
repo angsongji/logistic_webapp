@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<style th:replace="fragments/sidebar_accountant :: sidebar-styles"></style>
+<style>
+    .table td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+    .report-form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+</style>
+<body class="bg-light">
+
+<nav th:replace="fragments/header :: navbar"></nav>
+
+<!-- Sidebar -->
+<div th:replace="fragments/sidebar_accountant :: sidebar-accountant"></div>
+
+<!-- Main Content -->
+<div class="main-content-with-sidebar">
+    <div class="container-fluid p-4">
+        <h3 class="mb-4">📊 Báo cáo tài chính</h3>
+        <div id="financial-summary">
+            <h5 class="mb-3">Tổng quan tài chính</h5>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="stat-label">Tổng doanh thu</div>
+                        <div class="stat-value" id="stat-revenue">
+                            <i class="bi bi-hourglass-split"></i> Đang tải...
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="stat-label">Tổng chi phí</div>
+                        <div class="stat-value" id="stat-expenses">
+                            <i class="bi bi-hourglass-split"></i> Đang tải...
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <div class="stat-label">Lợi nhuận ròng</div>
+                        <div class="stat-value" id="stat-profit">
+                            <i class="bi bi-hourglass-split"></i> Đang tải...
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <div class="stat-label">Tỷ lệ lợi nhuận</div>
+                        <div class="stat-value" id="stat-margin">
+                            <i class="bi bi-hourglass-split"></i> Đang tải...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Generate Report Form -->
+        <div class="report-form-card">
+            <h5 class="mb-4"><i class="bi bi-file-earmark-plus"></i> Tạo báo cáo mới</h5>
+            <form id="generate-report-form">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">Loại báo cáo</label>
+                        <select class="form-select" id="reportType" required>
+                            <option value="">-- Chọn loại --</option>
+                            <option value="DAILY">Báo cáo ngày</option>
+                            <option value="WEEKLY">Báo cáo tuần</option>
+                            <option value="MONTHLY">Báo cáo tháng</option>
+                            <option value="QUARTERLY">Báo cáo quý</option>
+                            <option value="YEARLY">Báo cáo năm</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Từ ngày</label>
+                        <input type="date" class="form-control" id="startDate" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Đến ngày</label>
+                        <input type="date" class="form-control" id="endDate" required>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-circle"></i> Tạo báo cáo
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Financial Summary Stats -->
+
+
+        <!-- Filter -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Lọc theo loại</label>
+                        <select class="form-select" id="filterType">
+                            <option value="">Tất cả</option>
+                            <option value="DAILY">Ngày</option>
+                            <option value="WEEKLY">Tuần</option>
+                            <option value="MONTHLY">Tháng</option>
+                            <option value="QUARTERLY">Quý</option>
+                            <option value="YEARLY">Năm</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-secondary" onclick="loadReports()">
+                            <i class="bi bi-funnel"></i> Lọc
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Table -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Danh sách báo cáo</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr class="table-primary text-center">
+                            <th>ID</th>
+                            <th>Loại báo cáo</th>
+                            <th>Tên báo cáo</th>
+                            <th>Từ ngày</th>
+                            <th>Đến ngày</th>
+                            <th>Doanh thu</th>
+                            <th>Chi phí</th>
+                            <th>Lợi nhuận</th>
+                            <th>Tổng đơn</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody id="reports-table">
+                            <tr>
+                                <td colspan="11" class="text-center text-muted">
+                                    <i class="bi bi-hourglass-split"></i> Đang tải dữ liệu...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Format currency
+    function formatCurrency(amount) {
+        if (!amount) return '0 ₫';
+        return new Intl.NumberFormat('vi-VN').format(amount) + ' ₫';
+    }
+
+    // Format date
+    function formatDate(dateStr) {
+        if (!dateStr) return 'N/A';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('vi-VN');
+    }
+    
+    // Get actual order count from report
+    function calculateOrderCount(report) {
+        // Return actual total orders from database
+        return report.totalOrders || 0;
+    }
+
+    // Get report type display name
+    function getReportTypeDisplay(type) {
+        const types = {
+            'DAILY': 'Ngày',
+            'WEEKLY': 'Tuần',
+            'MONTHLY': 'Tháng',
+            'QUARTERLY': 'Quý',
+            'YEARLY': 'Năm'
+        };
+        return types[type] || type;
+    }
+
+    // Load all financial reports
+    async function loadReports() {
+        try {
+            const filterType = document.getElementById('filterType').value;
+            let url = '/api/accountant/reports';
+            
+            if (filterType) {
+                url = `/api/accountant/reports/type/${filterType}`;
+            }
+
+            const res = await fetch(url, { credentials: 'include' });
+            if (!res.ok) throw new Error('Failed to load reports');
+            
+            const data = await res.json();
+            const tbody = document.getElementById('reports-table');
+            
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="11" class="text-center text-muted">
+                            <i class="bi bi-inbox"></i> Chưa có báo cáo nào
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.map(r => `
+                <tr>
+                    <td>${r.id}</td>
+                    <td><span class="badge bg-info">${getReportTypeDisplay(r.reportType)}</span></td>
+                    <td><strong>${r.reportName || 'N/A'}</strong></td>
+                    <td>${formatDate(r.startDate)}</td>
+                    <td>${formatDate(r.endDate)}</td>
+                    <td><strong class="text-success">${formatCurrency(r.totalRevenue)}</strong></td>
+                    <td><strong class="text-danger">${formatCurrency(r.totalExpenses)}</strong></td>
+                    <td><strong class="text-primary">${formatCurrency(r.netProfit)}</strong></td>
+                    <td><span class="badge bg-secondary">${calculateOrderCount(r)}</span></td>
+                    <td>${formatDate(r.createdAt)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="viewReportDetail(${r.id})" title="Xem chi tiết">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading reports:', error);
+            alert('Lỗi khi tải danh sách báo cáo: ' + error.message);
+        }
+    }
+
+    // View report detail
+    function viewReportDetail(reportId) {
+        // TODO: Implement detail view - could be a modal or new page
+        alert('Chức năng xem chi tiết báo cáo ID: ' + reportId);
+    }
+
+    // Load financial summary
+    async function loadFinancialSummary(startDate, endDate) {
+        try {
+            const url = `/api/accountant/reports/financial-summary?startDate=${startDate}&endDate=${endDate}`;
+            const res = await fetch(url, { credentials: 'include' });
+            if (!res.ok) {
+                console.error('Failed to load financial summary');
+                return;
+            }
+            
+            const data = await res.json();
+            
+            // Update stats with real data
+            document.getElementById('stat-revenue').textContent = formatCurrency(data.totalRevenue || 0);
+            document.getElementById('stat-expenses').textContent = formatCurrency(data.totalExpenses || 0);
+            document.getElementById('stat-profit').textContent = formatCurrency(data.netProfit || 0);
+            document.getElementById('stat-margin').textContent = (data.profitMargin || 0).toFixed(2) + '%';
+            
+            // Log for debugging
+            console.log('Financial Summary:', {
+                revenue: data.totalRevenue,
+                expenses: data.totalExpenses,
+                profit: data.netProfit,
+                margin: data.profitMargin
+            });
+        } catch (error) {
+            console.error('Error loading financial summary:', error);
+            // Show error state
+            document.getElementById('stat-revenue').textContent = 'Lỗi';
+            document.getElementById('stat-expenses').textContent = 'Lỗi';
+            document.getElementById('stat-profit').textContent = 'Lỗi';
+            document.getElementById('stat-margin').textContent = 'Lỗi';
+        }
+    }
+
+    // Generate new report
+    document.getElementById('generate-report-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const reportType = document.getElementById('reportType').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        if (!reportType || !startDate || !endDate) {
+            alert('Vui lòng điền đầy đủ thông tin!');
+            return;
+        }
+        
+        if (new Date(startDate) > new Date(endDate)) {
+            alert('Ngày bắt đầu không được lớn hơn ngày kết thúc!');
+            return;
+        }
+        
+        try {
+            const url = `/api/accountant/reports/generate?reportType=${reportType}&startDate=${startDate}&endDate=${endDate}`;
+            const res = await fetch(url, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            if (!res.ok) {
+                throw new Error('Failed to generate report');
+            }
+            
+            const report = await res.json();
+            
+            alert('Tạo báo cáo thành công!');
+            
+            // Reset form
+            this.reset();
+            
+            // Load financial summary
+            await loadFinancialSummary(startDate, endDate);
+            
+            // Reload reports list
+            await loadReports();
+            
+        } catch (error) {
+            console.error('Error generating report:', error);
+            alert('Lỗi khi tạo báo cáo: ' + error.message);
+        }
+    });
+
+    // Set default dates (current month)
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        
+        document.getElementById('startDate').valueAsDate = firstDay;
+        document.getElementById('endDate').valueAsDate = today;
+        
+        // Load financial summary with default dates
+        const startDateStr = firstDay.toISOString().split('T')[0];
+        const endDateStr = today.toISOString().split('T')[0];
+        loadFinancialSummary(startDateStr, endDateStr);
+        
+        // Load reports on page load
+        loadReports();
+    });
+</script>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+</body>
+</html>
+
