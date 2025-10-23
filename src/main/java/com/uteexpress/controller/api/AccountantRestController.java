@@ -8,7 +8,9 @@ import com.uteexpress.entity.Debt;
 import com.uteexpress.entity.Invoice;
 import com.uteexpress.entity.Order;
 import com.uteexpress.entity.Payment;
+import com.uteexpress.entity.User;
 import com.uteexpress.repository.*;
+import com.uteexpress.service.customer.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,6 +35,7 @@ public class AccountantRestController {
     private final PaymentRepository paymentRepository;
     private final InvoiceRepository invoiceRepository;
     private final DebtRepository debtRepository;
+    private final CustomerService customerService;
 
     // ================================================================
     // DASHBOARD SUMMARY
@@ -239,6 +243,36 @@ public class AccountantRestController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         
         return getDashboardSummary(startDate, endDate);
+    }
+
+    // ================================================================
+    // PROFILE
+    // ================================================================
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(Principal principal) {
+        try {
+            User user = customerService.getByUsername(principal.getName());
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error getting profile: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody User profile, Principal principal) {
+        try {
+            User user = customerService.getByUsername(principal.getName());
+            
+            // Update user fields
+            user.setEmail(profile.getEmail());
+            user.setFullName(profile.getFullName());
+            user.setPhone(profile.getPhone());
+
+            User updatedUser = customerService.updateUser(user);
+            return ResponseEntity.ok(updatedUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error updating profile: " + e.getMessage());
+        }
     }
 
     // ================================================================

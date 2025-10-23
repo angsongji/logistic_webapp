@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title th:text="${title} ?: 'UTEExpress'">UTEExpress</title>
+
+    <!-- Bootstrap & Icons -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -12,10 +14,22 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      defer
+    ></script>
+
+    <!-- Optional libs -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"
+      defer
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"
+      defer
+    ></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+
     <style>
       .user-avatar {
         width: 36px;
@@ -30,9 +44,6 @@
         cursor: pointer;
         border: 2px solid white;
       }
-      .dropdown-menu {
-        min-width: 320px;
-      }
       .badge {
         font-size: 0.7em;
       }
@@ -41,8 +52,14 @@
         font-weight: 600;
         color: #6c757d;
       }
+
+      .dropdown-menu {
+        z-index: 1085;
+        min-width: 320px;
+      }
     </style>
   </head>
+
   <body>
     <nav
       th:fragment="navbar"
@@ -52,13 +69,16 @@
         <a class="navbar-brand fw-bold" href="/web/customer/dashboard">
           <i class="bi bi-box-seam"></i> UTEExpress
         </a>
-        <div class="d-flex align-items-center gap-3">
+
+        <div class="d-flex align-items-center gap-3 ms-auto">
           <!-- User Profile Dropdown when authenticated -->
           <div id="userDropdown" class="dropdown d-none">
             <div
               class="user-avatar"
               id="userAvatar"
+              role="button"
               data-bs-toggle="dropdown"
+              data-bs-auto-close="outside"
               aria-expanded="false"
             >
               <span id="avatarInitial">U</span>
@@ -98,6 +118,7 @@
                   <i class="bi bi-key me-2"></i>Đổi mật khẩu
                 </a>
               </li>
+
               <!-- Role-specific menu items -->
               <li id="accountantMenu" class="d-none">
                 <hr class="dropdown-divider" />
@@ -109,6 +130,7 @@
                   <i class="bi bi-receipt me-2"></i>Quản lý thanh toán
                 </a>
               </li>
+
               <li><hr class="dropdown-divider" /></li>
               <li>
                 <a
@@ -272,178 +294,82 @@
 
     <!-- User Profile Script -->
     <script th:fragment="profile-script">
-      // Utility function to get cookie value
+      /* ========= Helpers ========= */
       function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(";").shift();
-        return null;
+        const v = `; ${document.cookie}`;
+        const p = v.split(`; ${name}=`);
+        return p.length === 2 ? p.pop().split(";").shift() : null;
       }
+      function setupDropdownOnce() {
+        const trigger = document.getElementById("userAvatar");
+        const menu = trigger ? trigger.nextElementSibling : null;
+        if (!trigger || !menu) return;
+        if (trigger.dataset.dropdownInit === "true") return;
 
-      // Debug function to show all cookies
-      function debugCookies() {
-        console.log("All cookies:", document.cookie);
-        console.log("is_authenticated:", getCookie("is_authenticated"));
-        console.log("user_role:", getCookie("user_role"));
+        // Luôn gắn toggle thủ công (đảm bảo hoạt động kể cả khi Bootstrap chưa tải xong)
+        trigger.addEventListener("click", (e) => {
+          e.preventDefault();
+
+          // Toggle thủ công
+          menu.classList.toggle("show");
+          trigger.setAttribute(
+            "aria-expanded",
+            menu.classList.contains("show")
+          );
+
+          // Nếu Bootstrap đã sẵn, gọi thêm inst.toggle() để đồng bộ state & position
+          try {
+            if (window.bootstrap && bootstrap.Dropdown) {
+              let inst = bootstrap.Dropdown.getInstance(trigger);
+              if (!inst)
+                inst = new bootstrap.Dropdown(trigger, {
+                  autoClose: "outside",
+                });
+              // Bootstrap.toggle() sẽ tự xử lý state; nhưng vì ta đã toggle thủ công ở trên,
+              // nên để tránh "lệch pha", chỉ gọi khi cần:
+              // Nếu menu đang mở thủ công mà inst nghĩ là đóng -> gọi inst.show()
+              // Nếu menu đang đóng thủ công mà inst nghĩ là mở -> gọi inst.hide()
+              const isShown = menu.classList.contains("show");
+              const bsShown = menu.classList.contains("show"); // Bootstrap cũng dựa vào class này
+              if (isShown && !bsShown) inst.show();
+              if (!isShown && bsShown) inst.hide();
+            }
+          } catch (err) {
+            console.warn("Bootstrap sync dropdown failed:", err);
+          }
+        });
+
+        // Click ngoài để đóng (cho fallback + cũng hữu ích với Bootstrap)
+        document.addEventListener("click", (e) => {
+          const inside = trigger.contains(e.target) || menu.contains(e.target);
+          if (!inside && menu.classList.contains("show")) {
+            menu.classList.remove("show");
+            trigger.setAttribute("aria-expanded", "false");
+          }
+        });
+
+        trigger.dataset.dropdownInit = "true";
       }
+      // ===== Sửa lỗi: luôn show theo cookie trước, API chỉ để fill dữ liệu =====
+      async function initNavbar() {
+        // Chạy 1 lần thôi nếu fragment bị include nhiều lần
+        if (window.__navbarInitBound) return;
+        window.__navbarInitBound = true;
 
-      // Check authentication status
-      function checkAuthStatus() {
-        debugCookies(); // Debug all cookies
-        const isAuthenticated = getCookie("is_authenticated");
-        const role = getCookie("user_role");
+        const userDropdown = document.getElementById("userDropdown");
+        if (!userDropdown) return;
 
-        console.log("Checking auth status:", { isAuthenticated, role });
+        const isAuthCookie = getCookie("is_authenticated") === "true";
+        const roleCookie = getCookie("user_role");
 
-        if (isAuthenticated === "true") {
-          // User is authenticated
-          console.log("User is authenticated, showing dropdown");
-          const userDropdown = document.getElementById("userDropdown");
-          if (userDropdown) {
-            userDropdown.classList.remove("d-none");
-            console.log("Dropdown shown successfully");
-
-            // Initialize Bootstrap dropdown after showing. Add a fallback toggle if initialization fails.
-            setTimeout(() => {
-              const userAvatar = document.getElementById("userAvatar");
-              const dropdownMenu = userAvatar
-                ? userAvatar.nextElementSibling
-                : null;
-              try {
-                if (userAvatar && typeof bootstrap !== "undefined") {
-                  // Prefer Bootstrap's JS API
-                  // Avoid double-initialization by checking for existing dropdown instance
-                  if (!bootstrap.Dropdown.getInstance(userAvatar)) {
-                    new bootstrap.Dropdown(userAvatar);
-                    console.log("Bootstrap dropdown initialized");
-                  } else {
-                    console.log("Bootstrap dropdown instance already exists");
-                  }
-                } else if (userAvatar && dropdownMenu) {
-                  // Fallback: toggle `show` class on menu when avatar clicked
-                  console.warn(
-                    "Bootstrap not available; attaching fallback click handler for dropdown"
-                  );
-                  userAvatar.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    dropdownMenu.classList.toggle("show");
-                    const expanded = dropdownMenu.classList.contains("show");
-                    userAvatar.setAttribute("aria-expanded", expanded);
-                  });
-                }
-              } catch (err) {
-                console.error("Error initializing dropdown:", err);
-                if (userAvatar && dropdownMenu) {
-                  userAvatar.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    dropdownMenu.classList.toggle("show");
-                    const expanded = dropdownMenu.classList.contains("show");
-                    userAvatar.setAttribute("aria-expanded", expanded);
-                  });
-                }
-              }
-            }, 100);
-            // Ensure avatar click toggles dropdown instance explicitly (fixes cases where data-api doesn't fire)
-            if (userAvatar && !userAvatar.dataset.dropdownHandlerBound) {
-              try {
-                userAvatar.dataset.dropdownHandlerBound = "true";
-                userAvatar.addEventListener("click", (e) => {
-                  const inst =
-                    typeof bootstrap !== "undefined" && bootstrap.Dropdown
-                      ? bootstrap.Dropdown.getInstance(userAvatar)
-                      : null;
-                  if (inst && typeof inst.toggle === "function") {
-                    // Let Bootstrap manage toggle
-                    inst.toggle();
-                    console.log(
-                      "Toggled dropdown via explicit bootstrap instance toggle"
-                    );
-                    e.preventDefault();
-                    return;
-                  }
-                  // Fallback to class toggle
-                  if (dropdownMenu) {
-                    dropdownMenu.classList.toggle("show");
-                    const expanded = dropdownMenu.classList.contains("show");
-                    userAvatar.setAttribute("aria-expanded", expanded);
-                    console.log("Toggled dropdown via fallback class toggle");
-                    e.preventDefault();
-                  }
-                });
-
-                // Close dropdown when clicking outside
-                document.addEventListener("click", (docEvt) => {
-                  const target = docEvt.target;
-                  const isClickInside =
-                    userAvatar.contains(target) ||
-                    (dropdownMenu && dropdownMenu.contains(target));
-                  const inst =
-                    typeof bootstrap !== "undefined" && bootstrap.Dropdown
-                      ? bootstrap.Dropdown.getInstance(userAvatar)
-                      : null;
-                  if (!isClickInside) {
-                    if (inst && typeof inst.hide === "function") {
-                      try {
-                        inst.hide();
-                      } catch (e) {
-                        /* ignore */
-                      }
-                    }
-                    if (
-                      dropdownMenu &&
-                      dropdownMenu.classList.contains("show")
-                    ) {
-                      dropdownMenu.classList.remove("show");
-                      userAvatar.setAttribute("aria-expanded", "false");
-                    }
-                  }
-                });
-              } catch (bindErr) {
-                console.error(
-                  "Error binding explicit dropdown handlers:",
-                  bindErr
-                );
-              }
-            }
-          } else {
-            console.error("userDropdown element not found!");
-          }
-
-          // Show role-specific menus
-          if (role === "ROLE_ACCOUNTANT") {
-            const accountantMenu = document.getElementById("accountantMenu");
-            if (accountantMenu) {
-              accountantMenu.classList.remove("d-none");
-              console.log("Accountant menu shown");
-            } else {
-              console.error("accountantMenu element not found!");
-            }
-            document.getElementById("userRole").textContent = "Kế toán";
-            document.getElementById("userRole").className =
-              "badge bg-warning ms-1";
-          } else {
-            document.getElementById("userRole").textContent = "Khách hàng";
-            document.getElementById("userRole").className =
-              "badge bg-primary ms-1";
-          }
-
-          // Load user profile
-          loadUserProfile();
-        } else {
-          // User is not authenticated
-          console.log("User is not authenticated, hiding dropdown");
-          const userDropdown = document.getElementById("userDropdown");
-          if (userDropdown) {
-            userDropdown.classList.add("d-none");
-            console.log("Dropdown hidden successfully");
-          } else {
-            console.error("userDropdown element not found!");
-          }
+        // 1) Nếu cookie xác thực đúng -> SHOW NGAY (không chờ API)
+        if (isAuthCookie) {
+          userDropdown.classList.remove("d-none"); // <-- quan trọng
+          setupDropdownOnce(); // luôn init toggle
         }
-      }
 
-      // Load user profile on page load
-      async function loadUserProfile() {
+        // 2) Gọi API để đổ dữ liệu (không ảnh hưởng hiển thị)
+        let role = roleCookie;
         try {
           const res = await fetch("/api/customer/profile", {
             credentials: "include",
@@ -451,19 +377,168 @@
           if (res.ok) {
             const user = await res.json();
 
-            // Update avatar initials
-            const initial = user.fullName
-              ? user.fullName.charAt(0).toUpperCase()
-              : user.username.charAt(0).toUpperCase();
-            document.getElementById("avatarInitial").textContent = initial;
-            document.getElementById("avatarInitial2").textContent = initial;
+            // avatar / initials
+            const initial = (
+              user.fullName?.charAt(0) ||
+              user.username?.charAt(0) ||
+              "U"
+            ).toUpperCase();
+            const topAvatar = document.getElementById("userAvatar");
+            const innerInitial = document.getElementById("avatarInitial2");
+            if (user.avatarUrl) {
+              if (topAvatar) {
+                topAvatar.style.backgroundImage = `url('${user.avatarUrl}')`;
+                topAvatar.style.backgroundSize = "cover";
+                topAvatar.style.backgroundPosition = "center";
+                const s = document.getElementById("avatarInitial");
+                if (s) s.textContent = "";
+              }
+              if (innerInitial && innerInitial.parentElement) {
+                const box = innerInitial.parentElement;
+                box.style.backgroundImage = `url('${user.avatarUrl}')`;
+                box.style.backgroundSize = "cover";
+                box.style.backgroundPosition = "center";
+                innerInitial.textContent = "";
+              }
+            } else {
+              const a1 = document.getElementById("avatarInitial");
+              const a2 = document.getElementById("avatarInitial2");
+              if (topAvatar) topAvatar.style.backgroundImage = "";
+              if (innerInitial && innerInitial.parentElement)
+                innerInitial.parentElement.style.backgroundImage = "";
+              if (a1) a1.textContent = initial;
+              if (a2) a2.textContent = initial;
+            }
 
-            // Update dropdown info
+            // text
+            const nm = document.getElementById("userName");
+            const em = document.getElementById("userEmail");
+            if (nm) nm.textContent = user.fullName || user.username || "User";
+            if (em) em.textContent = user.email || "";
+
+            // form modal (nếu tồn tại)
+            const u = document.getElementById("profileUsername");
+            const e1 = document.getElementById("profileEmail");
+            const f = document.getElementById("profileFullName");
+            const p = document.getElementById("profilePhone");
+            if (u) u.value = user.username || "";
+            if (e1) e1.value = user.email || "";
+            if (f) f.value = user.fullName || "";
+            if (p) p.value = user.phone || "";
+
+            // role từ API (nếu có)
+            role =
+              user.roles && user.roles.length
+                ? typeof user.roles[0] === "string"
+                  ? user.roles[0]
+                  : user.roles[0].name || user.roles[0]
+                : roleCookie;
+
+            // Nếu cookie không có mà API ok -> cũng show
+            userDropdown.classList.remove("d-none");
+            setupDropdownOnce();
+          }
+        } catch (err) {
+          // API fail: nếu cookie cũng fail thì ẩn; nếu cookie ok thì đã show ở bước 1
+          if (!isAuthCookie) {
+            userDropdown.classList.add("d-none");
+            return;
+          }
+        }
+
+        // 3) Badge/role-based UI & "Tài khoản của tôi"
+        const badge = document.getElementById("userRole");
+        const acc = document.getElementById("accountantMenu");
+        if (role === "ROLE_ACCOUNTANT") {
+          acc && acc.classList.remove("d-none");
+          if (badge) {
+            badge.textContent = "Kế toán";
+            badge.className = "badge bg-warning ms-1";
+          }
+        } else {
+          if (badge) {
+            badge.textContent = "Khách hàng";
+            badge.className = "badge bg-primary ms-1";
+          }
+        }
+
+        const profileLink = document.getElementById("profileLink");
+        if (profileLink && !profileLink.dataset.bound) {
+          profileLink.addEventListener("click", function (e) {
+            e.preventDefault();
+            if (role === "ROLE_ACCOUNTANT") {
+              const m = new bootstrap.Modal(
+                document.getElementById("profileModal")
+              );
+              m.show();
+            } else {
+              window.location.href = "/web/customer/profile";
+            }
+          });
+          profileLink.dataset.bound = "true";
+        }
+      }
+
+      /* ========= Existing behaviors (unchanged) ========= */
+      async function loadUserProfile() {
+        try {
+          const res = await fetch("/api/customer/profile", {
+            credentials: "include",
+          });
+          if (res.ok) {
+            const user = await res.json();
+            const initial = (
+              user.fullName?.charAt(0) ||
+              user.username?.charAt(0) ||
+              "U"
+            ).toUpperCase();
+
+            // If user has an avatarUrl, use it as background for both avatar elements
+            try {
+              const topAvatar = document.getElementById("userAvatar");
+              const innerInitial = document.getElementById("avatarInitial2");
+
+              if (user.avatarUrl) {
+                // Top avatar (in navbar)
+                if (topAvatar) {
+                  topAvatar.style.backgroundImage = `url('${user.avatarUrl}')`;
+                  topAvatar.style.backgroundSize = "cover";
+                  topAvatar.style.backgroundPosition = "center";
+                  // remove text initial
+                  const initialSpan = document.getElementById("avatarInitial");
+                  if (initialSpan) initialSpan.textContent = "";
+                }
+
+                // Inner avatar (in dropdown list)
+                if (innerInitial && innerInitial.parentElement) {
+                  const innerAvatarContainer = innerInitial.parentElement;
+                  innerAvatarContainer.style.backgroundImage = `url('${user.avatarUrl}')`;
+                  innerAvatarContainer.style.backgroundSize = "cover";
+                  innerAvatarContainer.style.backgroundPosition = "center";
+                  innerInitial.textContent = "";
+                }
+              } else {
+                // No avatar URL -> show initials and clear any previously set background
+                if (topAvatar) {
+                  topAvatar.style.backgroundImage = "";
+                }
+                if (innerInitial && innerInitial.parentElement) {
+                  innerInitial.parentElement.style.backgroundImage = "";
+                }
+                document.getElementById("avatarInitial").textContent = initial;
+                document.getElementById("avatarInitial2").textContent = initial;
+              }
+            } catch (err) {
+              console.error("Error applying avatar image:", err);
+              // Fallback to initials
+              document.getElementById("avatarInitial").textContent = initial;
+              document.getElementById("avatarInitial2").textContent = initial;
+            }
+
             document.getElementById("userName").textContent =
               user.fullName || user.username;
             document.getElementById("userEmail").textContent = user.email;
 
-            // Update profile form
             document.getElementById("profileUsername").value =
               user.username || "";
             document.getElementById("profileEmail").value = user.email || "";
@@ -471,46 +546,32 @@
               user.fullName || "";
             document.getElementById("profilePhone").value = user.phone || "";
           } else {
-            // If profile load fails, show basic info from cookies
             showBasicUserInfo();
           }
-        } catch (error) {
-          console.error("Error loading user profile:", error);
-          // Show basic info from cookies
+        } catch (e) {
+          console.error("Error loading user profile:", e);
           showBasicUserInfo();
         }
       }
 
-      // Show basic user info when API is not available
       function showBasicUserInfo() {
-        // Get username from role or use default
         const role = getCookie("user_role");
-
-        // Use role to determine display name
         let username = "User";
-        if (role === "ROLE_CUSTOMER") {
-          username = "Khách hàng";
-        } else if (role === "ROLE_ACCOUNTANT") {
-          username = "Kế toán";
-        }
+        if (role === "ROLE_CUSTOMER") username = "Khách hàng";
+        else if (role === "ROLE_ACCOUNTANT") username = "Kế toán";
 
-        // Update avatar initials
         const initial = username.charAt(0).toUpperCase();
         document.getElementById("avatarInitial").textContent = initial;
         document.getElementById("avatarInitial2").textContent = initial;
-
-        // Update dropdown info
         document.getElementById("userName").textContent = username;
         document.getElementById("userEmail").textContent = "Loading...";
 
-        // Update profile form with basic info
         document.getElementById("profileUsername").value = username;
         document.getElementById("profileEmail").value = "";
         document.getElementById("profileFullName").value = "";
         document.getElementById("profilePhone").value = "";
       }
 
-      // Save profile changes
       async function saveProfile() {
         const alertBox = document.getElementById("profileAlert");
         const formData = {
@@ -518,45 +579,38 @@
           fullName: document.getElementById("profileFullName").value,
           phone: document.getElementById("profilePhone").value,
         };
-
         try {
           const res = await fetch("/api/customer/profile", {
             method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify(formData),
           });
-
           if (res.ok) {
             alertBox.className = "alert alert-success";
             alertBox.textContent = "Cập nhật thành công!";
             alertBox.classList.remove("d-none");
-
-            // Reload profile
             await loadUserProfile();
-
             setTimeout(() => {
-              bootstrap.Modal.getInstance(
+              const inst = bootstrap.Modal.getInstance(
                 document.getElementById("profileModal")
-              ).hide();
-            }, 1500);
+              );
+              inst && inst.hide();
+            }, 1200);
           } else {
             const error = await res.text();
             alertBox.className = "alert alert-danger";
             alertBox.textContent = error || "Cập nhật thất bại";
             alertBox.classList.remove("d-none");
           }
-        } catch (error) {
-          console.error("Error saving profile:", error);
+        } catch (e) {
+          console.error("Error saving profile:", e);
           alertBox.className = "alert alert-danger";
           alertBox.textContent = "Lỗi khi cập nhật thông tin";
           alertBox.classList.remove("d-none");
         }
       }
 
-      // Change password
       async function changePassword() {
         const alertBox = document.getElementById("passwordAlert");
         const currentPassword =
@@ -575,110 +629,39 @@
         try {
           const res = await fetch("/api/customer/change-password", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             credentials: "include",
-            body: JSON.stringify({
-              currentPassword,
-              newPassword,
-            }),
+            body: JSON.stringify({ currentPassword, newPassword }),
           });
 
           if (res.ok) {
             alertBox.className = "alert alert-success";
             alertBox.textContent = "Đổi mật khẩu thành công!";
             alertBox.classList.remove("d-none");
-
             document.getElementById("passwordForm").reset();
-
             setTimeout(() => {
-              bootstrap.Modal.getInstance(
+              const inst = bootstrap.Modal.getInstance(
                 document.getElementById("changePasswordModal")
-              ).hide();
-            }, 1500);
+              );
+              inst && inst.hide();
+            }, 1200);
           } else {
             const error = await res.text();
             alertBox.className = "alert alert-danger";
             alertBox.textContent = error || "Đổi mật khẩu thất bại";
             alertBox.classList.remove("d-none");
           }
-        } catch (error) {
-          console.error("Error changing password:", error);
+        } catch (e) {
+          console.error("Error changing password:", e);
           alertBox.className = "alert alert-danger";
           alertBox.textContent = "Lỗi khi đổi mật khẩu";
           alertBox.classList.remove("d-none");
         }
       }
 
-      // Check authentication status on page load
-      console.log("Header script loaded, checking auth status...");
-
-      // Force check after a short delay to ensure DOM is ready
-      setTimeout(() => {
-        console.log("Delayed auth check...");
-        checkAuthStatus();
-      }, 100);
-
-      // Also check immediately
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", checkAuthStatus);
-      } else {
-        checkAuthStatus();
-      }
-
-      // Additional check after page is fully loaded
-      window.addEventListener("load", () => {
-        console.log("Page fully loaded, checking auth status again...");
-        checkAuthStatus();
-      });
-
-      // Function to clear non-HTTP-only authentication cookies
-      function clearAuthCookies() {
-        // Only clear cookies that are not HTTP-only (jwt_token is HTTP-only, so skip it)
-        const cookies = ["is_authenticated", "user_role"];
-        cookies.forEach((cookieName) => {
-          // Clear with different path combinations
-          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;`;
-          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.localhost;`;
-          document.cookie = `${cookieName}=; max-age=0; path=/;`;
-          document.cookie = `${cookieName}=; max-age=-1; path=/;`;
-        });
-        console.log(
-          "Cleared non-HTTP-only auth cookies (jwt_token is HTTP-only, so server must clear it)"
-        );
-      }
-
-      // Handle profile link click based on role
-      function handleProfileClick(event) {
-        event.preventDefault();
-        const role = getCookie("user_role");
-
-        if (role === "ROLE_ACCOUNTANT") {
-          // Show modal for accountant
-          const modal = new bootstrap.Modal(
-            document.getElementById("profileModal")
-          );
-          modal.show();
-        } else {
-          // Redirect to profile page for customer
-          window.location.href = "/web/customer/profile";
-        }
-      }
-
-      // Add event listener to profile link
-      document.addEventListener("DOMContentLoaded", function () {
-        const profileLink = document.getElementById("profileLink");
-        if (profileLink) {
-          profileLink.addEventListener("click", handleProfileClick);
-        }
-      });
-
-      // Make functions available globally for debugging
-      window.checkAuthStatus = checkAuthStatus;
-      window.debugCookies = debugCookies;
-      window.clearAuthCookies = clearAuthCookies;
+      // Gọi init 1 lần
+      document.addEventListener("DOMContentLoaded", initNavbar);
+      window.addEventListener("load", initNavbar);
     </script>
   </body>
 </html>

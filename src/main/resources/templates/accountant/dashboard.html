@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: head"></head>
+<head th:replace="fragments/header_accountant :: head"></head>
 <style th:replace="fragments/sidebar_accountant :: sidebar-styles"></style>
 <style>
     .table td {
@@ -40,7 +40,7 @@
 </style>
 <body class="bg-light">
 
-<nav th:replace="fragments/header :: navbar"></nav>
+<nav th:replace="fragments/header_accountant :: navbar"></nav>
 
 <!-- Sidebar -->
 <div th:replace="fragments/sidebar_accountant :: sidebar-accountant"></div>
@@ -260,11 +260,11 @@
 <footer th:replace="fragments/footer :: footer"></footer>
 
 <!-- Profile & Password Modals -->
-<div th:replace="fragments/header :: profile-modal"></div>
-<div th:replace="fragments/header :: password-modal"></div>
+<div th:replace="fragments/header_accountant :: profile-modal"></div>
+<div th:replace="fragments/header_accountant :: password-modal"></div>
 
 <!-- Profile Script -->
-<script th:replace="fragments/header :: profile-script"></script>
+<script th:replace="fragments/header_accountant :: profile-script"></script>
 
 <!-- Sidebar Script -->
 <script th:replace="fragments/sidebar_accountant :: sidebar-script"></script>
