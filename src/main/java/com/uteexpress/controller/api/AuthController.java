@@ -28,13 +28,15 @@ public class AuthController {
     @PostMapping("/register")
     public String register(@ModelAttribute RegisterRequest req, Model model) {
         authService.register(req);
-        model.addAttribute("message", "Đăng ký thành công. Vui lòng đăng nhập.");
-        return "auth/login";
+        return "redirect:/auth/login?success=true";
     }
 
     @GetMapping("/login")
-    public String loginForm(Model model) {
+    public String loginForm(@RequestParam(required = false) String success, Model model) {
         model.addAttribute("loginRequest", new LoginRequest());
+        if ("true".equals(success)) {
+            model.addAttribute("message", "Đăng ký thành công! Vui lòng đăng nhập.");
+        }
         return "auth/login";
     }
 
