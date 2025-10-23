@@ -18,56 +18,178 @@
 <!-- Main Content -->
 <div class="main-content-with-sidebar">
     <div class="container-fluid p-4">
-        <h3 class="mb-4">💳 Danh sách thanh toán</h3>
+        <h3 class="mb-4">💳 Quản lý thanh toán</h3>
 
-<table class="table table-hover">
-    <thead>
-    <tr class="table-primary text-center">
-        <th>ID</th>
-        <th>Đơn hàng</th>
-        <th>Số tiền</th>
-        <th>Phương thức</th>
-        <th>Trạng thái</th>
-        <th>Thao tác</th>
-    </tr>
-    </thead>
-    <tbody id="payments-table"></tbody>
-</table>
+        <!-- Filter Section -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Bộ lọc</h5>
+                <div class="row align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Phương thức thanh toán</label>
+                        <select class="form-select" id="filterMethod">
+                            <option value="">Tất cả</option>
+                            <option value="CASH">Tiền mặt</option>
+                            <option value="BANK_TRANSFER">Chuyển khoản</option>
+                            <option value="E_WALLET">Ví điện tử</option>
+                            <option value="CREDIT_CARD">Thẻ tín dụng</option>
+                            <option value="VNPAY">VNPay</option>
+                            <option value="MOMO">MoMo</option>
+                            <option value="COD">Thu hộ (COD)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select" id="filterStatus">
+                            <option value="">Tất cả</option>
+                            <option value="PENDING">Chờ xử lý</option>
+                            <option value="COMPLETED">Đã hoàn thành</option>
+                            <option value="FAILED">Thất bại</option>
+                            <option value="REFUNDED">Đã hoàn tiền</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary" onclick="loadPayments()">
+                            <i class="bi bi-funnel"></i> Lọc
+                        </button>
+                        <button class="btn btn-secondary" onclick="resetFilters()">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Table -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Danh sách thanh toán</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr class="table-primary text-center">
+                            <th>ID</th>
+                            <th>Đơn hàng</th>
+                            <th>Số tiền</th>
+                            <th>Phương thức</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody id="payments-table">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                    <i class="bi bi-hourglass-split"></i> Đang tải dữ liệu...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     async function loadPayments() {
-        const res = await fetch('/api/accountant/payments', {
-            credentials: 'include'
-        });
-        const data = await res.json();
-        const tbody = document.getElementById('payments-table');
-        tbody.innerHTML = data.map(p => {
-            const isCompleted = p.status === 'COMPLETED' || p.status === 'Đã thanh toán';
-            const isPending = p.status === 'PENDING' || p.status === 'Chờ thanh toán';
+        try {
+            const filterMethod = document.getElementById('filterMethod').value;
+            const filterStatus = document.getElementById('filterStatus').value;
             
-            return `<tr>
-                <td>${p.id}</td>
-                <td>${p.orderCode || "N/A"}</td>
-                <td>${formatCurrency(p.amount || 0)}</td>
-                <td>${p.paymentMethod || "N/A"}</td>
-                <td><span class="badge bg-${getPaymentStatusBadge(p.status)}">${p.status}</span></td>
-                <td>
-                    ${isPending ? `
-                        <button class='btn btn-success btn-sm me-1' onclick='confirmPayment(${p.id})' title='Xác nhận thanh toán'>
-                            <i class='bi bi-check-circle'></i> Xác nhận
-                        </button>
-                    ` : ''}
-                    ${isCompleted ? `
-                        <button class='btn btn-warning btn-sm' onclick='refund(${p.id})' title='Hoàn tiền'>
-                            <i class='bi bi-arrow-counterclockwise'></i> Hoàn tiền
-                        </button>
-                    ` : ''}
-                    ${!isCompleted && !isPending ? `
-                        <span class='text-muted'><i class='bi bi-dash-circle'></i> Không khả dụng</span>
-                    ` : ''}
-                </td>
-            </tr>`;
-        }).join('');
+            let url = '/api/accountant/payments';
+            
+            // Apply filters
+            if (filterMethod) {
+                url = `/api/accountant/payments/method/${filterMethod}`;
+            } else if (filterStatus) {
+                url = `/api/accountant/payments/status/${filterStatus}`;
+            }
+            
+            const res = await fetch(url, { credentials: 'include' });
+            if (!res.ok) throw new Error('Failed to load payments');
+            
+            const data = await res.json();
+            const tbody = document.getElementById('payments-table');
+            
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            <i class="bi bi-inbox"></i> Không có dữ liệu thanh toán
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = data.map(p => {
+                const isCompleted = p.status === 'COMPLETED' || p.status === 'Đã thanh toán';
+                const isPending = p.status === 'PENDING' || p.status === 'Chờ thanh toán';
+                
+                return `<tr>
+                    <td>${p.id}</td>
+                    <td>${p.orderCode || "N/A"}</td>
+                    <td><strong>${formatCurrency(p.amount || 0)}</strong></td>
+                    <td><span class="badge bg-secondary">${getPaymentMethodDisplay(p.paymentMethod)}</span></td>
+                    <td><span class="badge bg-${getPaymentStatusBadge(p.status)}">${getStatusDisplay(p.status)}</span></td>
+                    <td>${formatDate(p.createdAt)}</td>
+                    <td>
+                        ${isPending ? `
+                            <button class='btn btn-success btn-sm me-1' onclick='confirmPayment(${p.id})' title='Xác nhận thanh toán'>
+                                <i class='bi bi-check-circle'></i> Xác nhận
+                            </button>
+                        ` : ''}
+                        ${isCompleted ? `
+                            <button class='btn btn-warning btn-sm' onclick='refund(${p.id})' title='Hoàn tiền'>
+                                <i class='bi bi-arrow-counterclockwise'></i> Hoàn tiền
+                            </button>
+                        ` : ''}
+                        ${!isCompleted && !isPending ? `
+                            <span class='text-muted'><i class='bi bi-dash-circle'></i> N/A</span>
+                        ` : ''}
+                    </td>
+                </tr>`;
+            }).join('');
+        } catch (error) {
+            console.error('Error loading payments:', error);
+            alert('Lỗi khi tải danh sách thanh toán: ' + error.message);
+        }
+    }
+    
+    function resetFilters() {
+        document.getElementById('filterMethod').value = '';
+        document.getElementById('filterStatus').value = '';
+        loadPayments();
+    }
+    
+    function getPaymentMethodDisplay(method) {
+        const methods = {
+            'CASH': 'Tiền mặt',
+            'BANK_TRANSFER': 'Chuyển khoản',
+            'E_WALLET': 'Ví điện tử',
+            'CREDIT_CARD': 'Thẻ tín dụng',
+            'VNPAY': 'VNPay',
+            'MOMO': 'MoMo',
+            'COD': 'COD'
+        };
+        return methods[method] || method || 'N/A';
+    }
+    
+    function getStatusDisplay(status) {
+        const statuses = {
+            'PENDING': 'Chờ xử lý',
+            'COMPLETED': 'Đã hoàn thành',
+            'FAILED': 'Thất bại',
+            'REFUNDED': 'Đã hoàn tiền'
+        };
+        return statuses[status] || status;
+    }
+    
+    function formatDate(dateStr) {
+        if (!dateStr) return 'N/A';
+        const date = new Date(dateStr);
+        return date.toLocaleString('vi-VN');
     }
 
     function formatCurrency(amount) {

@@ -1,0 +1,122 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║         BẢNG KIỂM TRA BÁO CÁO TÀI CHÍNH - THÁNG 10/2024                  ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+📌 HƯỚNG DẪN KIỂM TRA:
+─────────────────────────────────────────────────────────────────────────
+
+1️⃣  Chạy script test:
+    mysql -u root -p uteexpress < test_financial_report_october_2024.sql
+
+2️⃣  Restart server:
+    ./mvnw spring-boot:run
+
+3️⃣  Truy cập UI:
+    http://localhost:8080/web/accountant/reports
+
+4️⃣  Tạo báo cáo:
+    - Loại: MONTHLY
+    - Từ ngày: 01/10/2024
+    - Đến ngày: 31/10/2024
+    - Click "Tạo báo cáo"
+
+─────────────────────────────────────────────────────────────────────────
+📊 KẾT QUẢ MONG ĐỢI (Expected Results)
+─────────────────────────────────────────────────────────────────────────
+
+┌─────────────────────────────┬──────────────────┬─────────────────────┐
+│ CHỈ SỐ                      │ GIÁ TRỊ MONG ĐỢI  │ CÁCH TÍNH          │
+├─────────────────────────────┼──────────────────┼─────────────────────┤
+│ Tên báo cáo                 │ Báo cáo tháng    │ Auto generate      │
+│                             │ 10/2024          │                    │
+├─────────────────────────────┼──────────────────┼─────────────────────┤
+│ Tổng doanh thu              │ 700.000 đ        │ 4 payments         │
+│                             │                  │ COMPLETED          │
+├─────────────────────────────┼──────────────────┼─────────────────────┤
+│ Doanh thu vận chuyển        │ 1.000.000 đ      │ 5 orders           │
+│                             │                  │ HOAN_THANH         │
+├─────────────────────────────┼──────────────────┼─────────────────────┤
+│ Chi phí hoa hồng            │ 70.000 đ         │ 4 commissions từ  │
+│                             │                  │ orders trong kỳ    │
+├─────────────────────────────┼──────────────────┼─────────────────────┤
+│ Chi phí vận hành            │ 200.000 đ        │ Cố định (DT<1M)   │
+├─────────────────────────────┼──────────────────┼─────────────────────┤
+│ Tổng chi phí                │ 270.000 đ        │ 70k + 200k        │
+├─────────────────────────────┼──────────────────┼─────────────────────┤
+│ Lợi nhuận ròng              │ 430.000 đ ✅      │ 700k - 270k       │
+├─────────────────────────────┼──────────────────┼─────────────────────┤
+│ Tỷ lệ lợi nhuận             │ 61.43%           │ (430k/700k)×100   │
+└─────────────────────────────┴──────────────────┴─────────────────────┘
+
+─────────────────────────────────────────────────────────────────────────
+🔍 PHÂN TÍCH DỮ LIỆU
+─────────────────────────────────────────────────────────────────────────
+
+📦 ORDERS (7 đơn):
+   ✅ 5 đơn HOAN_THANH → Tổng VC: 1.000.000 đ
+   ❌ 2 đơn DANG_GIAO → KHÔNG tính
+
+💳 PAYMENTS (5 payments):
+   ✅ 4 payments COMPLETED → Tổng: 700.000 đ
+      • TEST-OCT-001: 100.000 đ (CASH)
+      • TEST-OCT-002: 150.000 đ (BANK)
+      • TEST-OCT-003: 200.000 đ (VNPAY)
+      • TEST-OCT-004: 250.000 đ (MOMO)
+   
+   ❌ 1 payment PENDING → KHÔNG tính
+      • TEST-OCT-005: 300.000 đ (COD)
+
+💰 COMMISSIONS (5 records):
+   ✅ 4 commissions từ orders → Tổng: 70.000 đ
+      • Order 1: 10.000 đ
+      • Order 2: 15.000 đ
+      • Order 3: 20.000 đ
+      • Order 4: 25.000 đ
+   
+   ❌ 1 BONUS → KHÔNG tính
+      • 500.000 đ (không liên kết order)
+
+─────────────────────────────────────────────────────────────────────────
+⚠️  CÁC TRƯỜNG HỢP SAI THƯỜNG GẶP
+─────────────────────────────────────────────────────────────────────────
+
+❌ SAI 1: Doanh thu = 1.000.000 đ (thay vì 700k)
+   → Nguyên nhân: Đang tính cả payment PENDING (300k)
+   → Kiểm tra: filter p.status = 'COMPLETED'
+
+❌ SAI 2: Chi phí HH = 570.000 đ (thay vì 70k)
+   → Nguyên nhân: Đang tính cả BONUS (500k)
+   → Kiểm tra: filter c.order_id IS NOT NULL và trong danh sách orders
+
+❌ SAI 3: Lợi nhuận ÂM
+   → Nguyên nhân: 2 lỗi trên kết hợp
+   → Sửa: Cả 2 filter phía trên
+
+─────────────────────────────────────────────────────────────────────────
+✅ CHECK LIST
+─────────────────────────────────────────────────────────────────────────
+
+☐ Script test đã chạy thành công
+☐ Server đã restart
+☐ Báo cáo được tạo không lỗi
+☐ Tổng doanh thu = 700.000 đ
+☐ Chi phí hoa hồng = 70.000 đ
+☐ Chi phí vận hành = 200.000 đ
+☐ Tổng chi phí = 270.000 đ
+☐ Lợi nhuận = 430.000 đ (DƯƠNG)
+☐ Không có commission BONUS (500k) trong chi phí
+☐ Không có payment PENDING (300k) trong doanh thu
+
+─────────────────────────────────────────────────────────────────────────
+📸 CHỤP MÀN HÌNH KẾT QUẢ
+─────────────────────────────────────────────────────────────────────────
+
+Sau khi test, chụp màn hình và so sánh:
+1. 4 stat cards (Doanh thu, Chi phí, Lợi nhuận, Tỷ lệ)
+2. Dòng báo cáo mới trong bảng
+3. Console log (F12) để xem dữ liệu API trả về
+
+Nếu có sai số, gửi screenshot để debug!
+
+═══════════════════════════════════════════════════════════════════════════
+

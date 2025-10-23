@@ -24,23 +24,30 @@ public class Commission {
     @JoinColumn(name = "order_id")
     private Order order;
 
-    @Column(nullable = false)
-    private BigDecimal amount;
+    @Column(name = "base_amount", nullable = false)
+    private BigDecimal baseAmount;
 
-    @Column
-    private BigDecimal percentage;
+    @Column(name = "commission_rate", nullable = false)
+    private BigDecimal commissionRate;
+
+    @Column(name = "commission_amount", nullable = false)
+    private BigDecimal commissionAmount;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "commission_type")
     private CommissionType commissionType;
 
     @Enumerated(EnumType.STRING)
     private CommissionStatus status;
 
-    @Column(name = "calculated_date", nullable = false)
+    @Column(name = "calculated_date")
     private LocalDateTime calculatedDate;
 
     @Column(name = "paid_date")
     private LocalDateTime paidDate;
+    
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -59,6 +59,10 @@ public class Order {
     @JoinColumn(name = "customer_id")
     private com.uteexpress.entity.customer.Customer customer;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shipper_id")
+    private Shipper shipper;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items;
 

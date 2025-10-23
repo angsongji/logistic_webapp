@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<style th:replace="fragments/sidebar_accountant :: sidebar-styles"></style>
+<style>
+    .table td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+    .filter-section {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .stats-card {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .stats-card h5 {
+        margin: 0;
+        font-size: 14px;
+        color: #666;
+    }
+    .stats-card .amount {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-top: 5px;
+    }
+</style>
+<body class="bg-light">
+
+<nav th:replace="fragments/header :: navbar"></nav>
+
+<!-- Sidebar -->
+<div th:replace="fragments/sidebar_accountant :: sidebar-accountant"></div>
+
+<!-- Main Content -->
+<div class="main-content-with-sidebar">
+    <div class="container-fluid p-4">
+        <h3 class="mb-4">💰 Quản lý hoa hồng Shipper</h3>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h5>Tổng chờ thanh toán</h5>
+                    <div class="amount text-warning" id="total-pending">0₫</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h5>Tổng đã duyệt</h5>
+                    <div class="amount text-info" id="total-approved">0₫</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h5>Tổng đã thanh toán</h5>
+                    <div class="amount text-success" id="total-paid">0₫</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h5>Tổng hủy</h5>
+                    <div class="amount text-danger" id="total-cancelled">0₫</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="filter-status" class="form-label">Lọc theo trạng thái:</label>
+                    <select class="form-select" id="filter-status" onchange="filterCommissions()">
+                        <option value="">Tất cả</option>
+                        <option value="PENDING">Chờ thanh toán</option>
+                        <option value="APPROVED">Đã duyệt</option>
+                        <option value="PAID">Đã thanh toán</option>
+                        <option value="CANCELLED">Đã hủy</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Thao tác:</label><br>
+                    <button class="btn btn-primary btn-sm" onclick="loadCommissions()">
+                        <i class="bi bi-arrow-clockwise"></i> Làm mới
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Commissions Table -->
+        <div class="table-responsive">
+            <table class="table table-hover bg-white">
+                <thead>
+                <tr class="table-primary text-center">
+                    <th>ID</th>
+                    <th>Shipper</th>
+                    <th>Mã đơn hàng</th>
+                    <th>Loại hoa hồng</th>
+                    <th>Phần trăm (%)</th>
+                    <th>Số tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tính</th>
+                    <th>Ngày thanh toán</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody id="commissions-table">
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-4">
+                            <i class="bi bi-hourglass-split"></i> Đang tải dữ liệu...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Commission Modal -->
+<div class="modal fade" id="editCommissionModal" tabindex="-1" aria-labelledby="editCommissionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="editCommissionModalLabel">
+                    <i class="bi bi-pencil-square"></i> Chỉnh sửa hoa hồng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-commission-form">
+                    <input type="hidden" id="edit-commission-id">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Shipper</label>
+                            <input type="text" class="form-control" id="edit-shipper-name" disabled>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Mã đơn hàng</label>
+                            <input type="text" class="form-control" id="edit-order-code" disabled>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="edit-base-amount" class="form-label fw-bold">Số tiền cơ sở (VNĐ)</label>
+                            <input type="number" class="form-control" id="edit-base-amount" step="1000">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit-commission-rate" class="form-label fw-bold">Phần trăm hoa hồng (%)</label>
+                            <input type="number" class="form-control" id="edit-commission-rate" step="0.1" min="0" max="100">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="edit-commission-amount" class="form-label fw-bold">Số tiền hoa hồng (VNĐ)</label>
+                            <input type="number" class="form-control" id="edit-commission-amount" step="1000">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit-commission-type" class="form-label fw-bold">Loại hoa hồng</label>
+                            <select class="form-select" id="edit-commission-type">
+                                <option value="DELIVERY">Giao hàng</option>
+                                <option value="BONUS">Thưởng</option>
+                                <option value="PENALTY">Phạt</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="edit-status" class="form-label fw-bold">Trạng thái</label>
+                            <select class="form-select" id="edit-status">
+                                <option value="PENDING">Chờ thanh toán</option>
+                                <option value="APPROVED">Đã duyệt</option>
+                                <option value="PAID">Đã thanh toán</option>
+                                <option value="CANCELLED">Đã hủy</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="edit-notes" class="form-label fw-bold">Ghi chú</label>
+                            <textarea class="form-control" id="edit-notes" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Hủy
+                </button>
+                <button type="button" class="btn btn-warning" onclick="saveCommissionEdit()">
+                    <i class="bi bi-save"></i> Lưu thay đổi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+
+<!-- Sidebar Script -->
+<script th:replace="fragments/sidebar_accountant :: sidebar-script"></script>
+
+<script>
+    let allCommissions = [];
+
+    async function loadCommissions() {
+        try {
+            const res = await fetch('/api/accountant/commissions', {
+                credentials: 'include'
+            });
+            
+            if (!res.ok) {
+                throw new Error('Không thể tải dữ liệu hoa hồng');
+            }
+            
+            allCommissions = await res.json();
+            updateStatistics();
+            displayCommissions(allCommissions);
+        } catch (error) {
+            console.error('Error loading commissions:', error);
+            document.getElementById('commissions-table').innerHTML = `
+                <tr>
+                    <td colspan="10" class="text-center text-danger py-4">
+                        <i class="bi bi-exclamation-triangle"></i> Lỗi khi tải dữ liệu: ${error.message}
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    function displayCommissions(commissions) {
+        const tbody = document.getElementById('commissions-table');
+        
+        if (commissions.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="10" class="text-center text-muted py-4">
+                        <i class="bi bi-inbox"></i> Không có dữ liệu hoa hồng
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        tbody.innerHTML = commissions.map(c => {
+            const isPending = c.status === 'PENDING';
+            const isApproved = c.status === 'APPROVED';
+            const isPaid = c.status === 'PAID';
+            
+            return `<tr>
+                <td>${c.id}</td>
+                <td>
+                    <strong>${c.shipperName || 'N/A'}</strong><br>
+                    <small class="text-muted">${c.shipperCode || ''}</small>
+                </td>
+                <td>${c.orderCode || 'N/A'}</td>
+                <td><span class="badge bg-info">${c.commissionTypeDisplay || c.commissionType}</span></td>
+                <td>${c.commissionRate ? c.commissionRate + '%' : 'N/A'}</td>
+                <td><strong>${formatCurrency(c.commissionAmount || 0)}</strong></td>
+                <td><span class="badge bg-${getStatusBadge(c.status)}">${c.statusDisplay || c.status}</span></td>
+                <td>${formatDate(c.calculatedDate)}</td>
+                <td>${c.paidDate ? formatDate(c.paidDate) : '<span class="text-muted">Chưa thanh toán</span>'}</td>
+                <td>
+                    <button class='btn btn-warning btn-sm me-1' onclick='openEditModal(${c.id})' title='Chỉnh sửa'>
+                        <i class='bi bi-pencil'></i>
+                    </button>
+                    ${isPending ? `
+                        <button class='btn btn-success btn-sm me-1' onclick='approveCommission(${c.id})' title='Duyệt hoa hồng'>
+                            <i class='bi bi-check-circle'></i>
+                        </button>
+                        <button class='btn btn-danger btn-sm' onclick='cancelCommission(${c.id})' title='Hủy'>
+                            <i class='bi bi-x-circle'></i>
+                        </button>
+                    ` : ''}
+                    ${isApproved ? `
+                        <button class='btn btn-primary btn-sm' onclick='payCommission(${c.id})' title='Thanh toán'>
+                            <i class='bi bi-cash'></i>
+                        </button>
+                    ` : ''}
+                    ${isPaid ? `
+                        <span class='text-success'><i class='bi bi-check-circle-fill'></i> Đã xử lý</span>
+                    ` : ''}
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function updateStatistics() {
+        const stats = {
+            pending: 0,
+            approved: 0,
+            paid: 0,
+            cancelled: 0
+        };
+
+        allCommissions.forEach(c => {
+            const amount = c.commissionAmount || 0;
+            switch (c.status) {
+                case 'PENDING':
+                    stats.pending += amount;
+                    break;
+                case 'APPROVED':
+                    stats.approved += amount;
+                    break;
+                case 'PAID':
+                    stats.paid += amount;
+                    break;
+                case 'CANCELLED':
+                    stats.cancelled += amount;
+                    break;
+            }
+        });
+
+        document.getElementById('total-pending').textContent = formatCurrency(stats.pending);
+        document.getElementById('total-approved').textContent = formatCurrency(stats.approved);
+        document.getElementById('total-paid').textContent = formatCurrency(stats.paid);
+        document.getElementById('total-cancelled').textContent = formatCurrency(stats.cancelled);
+    }
+
+    function filterCommissions() {
+        const status = document.getElementById('filter-status').value;
+        
+        if (!status) {
+            displayCommissions(allCommissions);
+            return;
+        }
+
+        const filtered = allCommissions.filter(c => c.status === status);
+        displayCommissions(filtered);
+    }
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(amount);
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function getStatusBadge(status) {
+        const badges = {
+            'PENDING': 'warning',
+            'APPROVED': 'info',
+            'PAID': 'success',
+            'CANCELLED': 'danger'
+        };
+        return badges[status] || 'secondary';
+    }
+
+    async function approveCommission(id) {
+        if (!confirm('Bạn có chắc muốn duyệt hoa hồng này?')) return;
+        
+        try {
+            const res = await fetch(`/api/accountant/commissions/${id}/approve`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            if (!res.ok) throw new Error('Không thể duyệt hoa hồng');
+            
+            alert('Đã duyệt hoa hồng thành công!');
+            loadCommissions();
+        } catch (error) {
+            alert('Lỗi: ' + error.message);
+        }
+    }
+
+    async function payCommission(id) {
+        if (!confirm('Xác nhận đã thanh toán hoa hồng này?')) return;
+        
+        try {
+            const res = await fetch(`/api/accountant/commissions/${id}/pay`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            if (!res.ok) throw new Error('Không thể thanh toán hoa hồng');
+            
+            alert('Đã thanh toán hoa hồng thành công!');
+            loadCommissions();
+        } catch (error) {
+            alert('Lỗi: ' + error.message);
+        }
+    }
+
+    async function cancelCommission(id) {
+        if (!confirm('Bạn có chắc muốn hủy hoa hồng này?')) return;
+        
+        try {
+            const res = await fetch(`/api/accountant/commissions/${id}/cancel`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            if (!res.ok) throw new Error('Không thể hủy hoa hồng');
+            
+            alert('Đã hủy hoa hồng!');
+            loadCommissions();
+        } catch (error) {
+            alert('Lỗi: ' + error.message);
+        }
+    }
+
+    async function openEditModal(commissionId) {
+        try {
+            // Fetch commission details
+            const res = await fetch(`/api/accountant/commissions/${commissionId}`, {
+                credentials: 'include'
+            });
+            
+            if (!res.ok) throw new Error('Không thể tải thông tin hoa hồng');
+            
+            const commission = await res.json();
+            
+            // Populate form with commission data
+            document.getElementById('edit-commission-id').value = commission.id;
+            document.getElementById('edit-shipper-name').value = commission.shipperName || 'N/A';
+            document.getElementById('edit-order-code').value = commission.orderCode || 'N/A';
+            document.getElementById('edit-base-amount').value = commission.baseAmount || 0;
+            document.getElementById('edit-commission-rate').value = commission.commissionRate || 0;
+            document.getElementById('edit-commission-amount').value = commission.commissionAmount || 0;
+            document.getElementById('edit-commission-type').value = commission.commissionType || 'DELIVERY';
+            document.getElementById('edit-status').value = commission.status || 'PENDING';
+            document.getElementById('edit-notes').value = commission.notes || '';
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('editCommissionModal'));
+            modal.show();
+        } catch (error) {
+            alert('Lỗi: ' + error.message);
+        }
+    }
+
+    async function saveCommissionEdit() {
+        const id = document.getElementById('edit-commission-id').value;
+        
+        const updateData = {
+            baseAmount: parseFloat(document.getElementById('edit-base-amount').value),
+            commissionRate: parseFloat(document.getElementById('edit-commission-rate').value),
+            commissionAmount: parseFloat(document.getElementById('edit-commission-amount').value),
+            commissionType: document.getElementById('edit-commission-type').value,
+            status: document.getElementById('edit-status').value,
+            notes: document.getElementById('edit-notes').value
+        };
+        
+        try {
+            const res = await fetch(`/api/accountant/commissions/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(updateData)
+            });
+            
+            if (!res.ok) throw new Error('Không thể cập nhật hoa hồng');
+            
+            alert('Cập nhật hoa hồng thành công!');
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editCommissionModal'));
+            modal.hide();
+            
+            // Reload data
+            loadCommissions();
+        } catch (error) {
+            alert('Lỗi: ' + error.message);
+        }
+    }
+
+    // Load commissions on page load
+    loadCommissions();
+</script>
+
+</body>
+</html>
+
