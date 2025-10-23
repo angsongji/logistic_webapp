@@ -69,6 +69,11 @@ public class Invoice {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+        
+        // Tự động set paymentDate khi status = PAID
+        if (status == InvoiceStatus.PAID && paymentDate == null) {
+            paymentDate = LocalDateTime.now();
+        }
     }
 
     public enum InvoiceStatus {

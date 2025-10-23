@@ -36,10 +36,7 @@ public class OrderMapper {
                 .recipientName(order.getRecipientName())
                 .recipientPhone(order.getRecipientPhone())
                 .recipientAddress(order.getRecipientAddress())
-                .totalAmount(order.getTotalAmount() != null ? order.getTotalAmount() : order.getShipmentFee())
                 .shipmentFee(order.getShipmentFee())
-                .codAmount(order.getCodAmount())
-                .weight(order.getWeight())
                 .status(order.getStatus() != null ? order.getStatus().name() : null)
                 .imageUrl(order.getImageUrl())
                 .createdAt(order.getCreatedAt())
@@ -49,8 +46,6 @@ public class OrderMapper {
                 .serviceType(order.getServiceType() != null ? order.getServiceType().name() : null)
                 .customerId(order.getCustomer() != null ? order.getCustomer().getId() : null)
                 .shipperId(order.getShipper() != null ? order.getShipper().getId() : null)
-                .pickupDate(order.getPickupDate())
-                .deliveryDate(order.getDeliveryDate())
                 .build();
     }
     
@@ -63,10 +58,7 @@ public class OrderMapper {
                 .recipientName(order.getRecipientName())
                 .recipientPhone(order.getRecipientPhone())
                 .recipientAddress(order.getRecipientAddress())
-                .totalAmount(order.getTotalAmount() != null ? order.getTotalAmount() : order.getShipmentFee())
                 .shipmentFee(order.getShipmentFee())
-                .codAmount(order.getCodAmount())
-                .weight(order.getWeight())
                 .status(order.getStatus() != null ? order.getStatus().name() : null)
                 .imageUrl(order.getImageUrl())
                 .createdAt(order.getCreatedAt())
@@ -76,8 +68,6 @@ public class OrderMapper {
                 .serviceType(order.getServiceType() != null ? order.getServiceType().name() : null)
                 .customerId(order.getCustomer() != null ? order.getCustomer().getId() : null)
                 .shipperId(order.getShipper() != null ? order.getShipper().getId() : null)
-                .pickupDate(order.getPickupDate())
-                .deliveryDate(order.getDeliveryDate())
                 .invoice(InvoiceMapper.toDto(invoice))
                 .payment(PaymentMapper.toDto(payment))
                 .build();

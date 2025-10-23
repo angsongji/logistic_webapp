@@ -59,6 +59,21 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    public List<Payment> getPaymentsByMethod(String method) {
+        return paymentRepository.findByMethod(method);
+    }
+
+    @Override
+    public List<Payment> getPaymentsByStatus(String status) {
+        return paymentRepository.findByStatus(status);
+    }
+
+    @Override
+    public List<Payment> getPaymentsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return paymentRepository.findByCreatedAtBetween(startDate, endDate);
+    }
+
+    @Override
     public Payment confirmPayment(Long id) {
         Payment p = paymentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));

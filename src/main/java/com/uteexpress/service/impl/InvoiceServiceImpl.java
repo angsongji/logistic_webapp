@@ -45,6 +45,12 @@ public class InvoiceServiceImpl implements InvoiceService {
         Invoice invoice = invoiceRepository.findById(invoiceId).orElse(null);
         if (invoice != null) {
             invoice.setStatus(status);
+            
+            // Tự động set paymentDate khi status = PAID
+            if (status == Invoice.InvoiceStatus.PAID && invoice.getPaymentDate() == null) {
+                invoice.setPaymentDate(LocalDateTime.now());
+            }
+            
             return invoiceRepository.save(invoice);
         }
         return null;
