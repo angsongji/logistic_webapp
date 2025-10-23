@@ -983,7 +983,6 @@
             function resetForm() {
               form.reset();
               pickupAddressInput.value = '';
-              customPickupAddressInput.value = '';
               
               // Reset image preview
               const previewContainer = document.getElementById('imagePreviewContainer');
@@ -1078,7 +1077,7 @@
                 }
                 
                 // Show success message
-                alert(`✅ Tạo đơn hàng thành công!\nMã đơn hàng: ${orderResponse.code}`);
+                alert(`✅ Tạo đơn hàng thành công!`);
                 
                 // Reset form
                 resetForm();
@@ -1157,21 +1156,7 @@
               const recipientPays = document.getElementById('recipientPays').checked;
               const currentNotes = document.getElementById('notes').value;
               
-              // Build payment info
-              let paymentInfo = '';
-              if (recipientPays) {
-                paymentInfo = "\n\n[THANH TOÁN: Người nhận thanh toán phí vận chuyển]";
-              } else {
-                const paymentMethod = document.getElementById('paymentMethod').value;
-                const paymentNote = document.getElementById('paymentNote').value;
-                const paymentMethodText = getPaymentMethodText(paymentMethod);
-                paymentInfo = `\n\n[THANH TOÁN: Người gửi thanh toán phí vận chuyển - Phương thức: ${paymentMethodText}`;
-                
-                if (paymentNote.trim()) {
-                  paymentInfo += ` - Ghi chú: ${paymentNote.trim()}`;
-                }
-                paymentInfo += ']';
-              }
+              // Payment info is handled separately in createInvoice and createPayment
               
               // Collect all form data
               const data = {
@@ -1197,18 +1182,18 @@
                 paymentNote: recipientPays ? null : document.getElementById('paymentNote').value,
                 
                 // Additional info
-                notes: currentNotes + paymentInfo,
+                notes: currentNotes,
                 imageFile: document.getElementById('image').files[0] || null
               };
               
               return data;
             }
 
-            // Upload image via backend API
+            // Upload image via dedicated upload API
             async function uploadImageToCloudinary(imageFile) {
               if (!imageFile) return null;
               
-              console.log('📸 Uploading image via backend API...');
+              console.log('📸 Uploading image via upload API...');
               console.log('📸 File info:', {
                 name: imageFile.name,
                 size: imageFile.size,
@@ -1216,7 +1201,7 @@
               });
               
               const formData = new FormData();
-              formData.append('image', imageFile);
+              formData.append('image', imageFile); // Sử dụng 'image' cho endpoint mới
               
               try {
                 const response = await fetch('/api/customer/upload-image', {
@@ -1235,7 +1220,7 @@
                 console.log('✅ Image uploaded successfully:', {
                   imageUrl: result.imageUrl
                 });
-                return result.imageUrl;
+                return result.imageUrl; // Trả về imageUrl từ upload API
               } catch (error) {
                 console.error('❌ Image upload error:', error);
                 throw new Error(`Không thể upload ảnh: ${error.message}`);
@@ -1283,15 +1268,19 @@
               console.log('  - notes:', orderData.notes);
               console.log('  - imageUrl:', orderData.imageUrl);
               
+              // Debug recipientAddress
+              console.log('🔍 Debug recipientAddress:');
+              console.log('  - formData.recipientAddress:', formData.recipientAddress);
+              console.log('  - orderData.recipientAddress:', orderData.recipientAddress);
+              console.log('  - DOM element value:', document.getElementById('recipientAddress').value);
+              console.log('  - DOM element value length:', document.getElementById('recipientAddress').value.length);
+              console.log('  - DOM element value trimmed:', document.getElementById('recipientAddress').value.trim());
+              
               // Check if recipientAddress is empty
               if (!orderData.recipientAddress || orderData.recipientAddress.trim() === '') {
                 console.error('❌ recipientAddress is empty or null!');
                 console.error('❌ Raw form data recipientAddress:', formData.recipientAddress);
                 console.error('❌ DOM element value:', document.getElementById('recipientAddress').value);
-              }
-              
-              // Validate required fields
-              if (!orderData.recipientAddress || orderData.recipientAddress.trim() === '') {
                 throw new Error('recipientAddress is required but was empty');
               }
               

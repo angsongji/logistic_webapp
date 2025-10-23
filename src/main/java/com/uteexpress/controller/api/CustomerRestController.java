@@ -2,6 +2,11 @@ package com.uteexpress.controller.api;
 
 import com.uteexpress.dto.customer.OrderRequestDto;
 import com.uteexpress.entity.User;
+import com.uteexpress.entity.Order;
+import com.uteexpress.entity.Invoice;
+import com.uteexpress.entity.Payment;
+import com.uteexpress.repository.InvoiceRepository;
+import com.uteexpress.repository.PaymentRepository;
 import com.uteexpress.service.customer.CustomerService;
 import com.uteexpress.service.customer.OrderService;
 import com.uteexpress.service.storage.CloudinaryStorageService;
@@ -10,6 +15,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/customer")
@@ -18,24 +27,43 @@ public class CustomerRestController {
     private final OrderService orderService;
     private final CustomerService customerService;
     private final CloudinaryStorageService cloudinaryStorageService;
+    private final InvoiceRepository invoiceRepository;
+    private final PaymentRepository paymentRepository;
 
     public CustomerRestController(OrderService orderService,
                                   CustomerService customerService,
-                                  CloudinaryStorageService cloudinaryStorageService) {
+                                  CloudinaryStorageService cloudinaryStorageService,
+                                  InvoiceRepository invoiceRepository,
+                                  PaymentRepository paymentRepository) {
         this.orderService = orderService;
         this.customerService = customerService;
         this.cloudinaryStorageService = cloudinaryStorageService;
+        this.invoiceRepository = invoiceRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     @PostMapping("/orders")
     public ResponseEntity<?> createOrder(
-            @ModelAttribute OrderRequestDto dto,
+            @RequestBody OrderRequestDto dto,
             Principal principal) {
         User user = customerService.getByUsername(principal.getName());
         try {
+            // Debug logging
+            System.out.println("=== CREATE ORDER DEBUG ===");
+            System.out.println("Principal: " + (principal != null ? principal.getName() : "null"));
+            System.out.println("User: " + (user != null ? user.getUsername() : "null"));
+            System.out.println("DTO recipientAddress: " + dto.getRecipientAddress());
+            System.out.println("DTO recipientName: " + dto.getRecipientName());
+            System.out.println("DTO recipientPhone: " + dto.getRecipientPhone());
+            System.out.println("DTO senderAddress: " + dto.getSenderAddress());
+            System.out.println("DTO imageUrl: " + dto.getImageUrl());
+            System.out.println("=========================");
+            
             var order = orderService.createOrder(user, dto);
             return ResponseEntity.ok(order);
         } catch (Exception e) {
+            System.err.println("Error creating order: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("Error creating order: " + e.getMessage());
         }
     }
@@ -160,6 +188,133 @@ public class CustomerRestController {
             System.err.println("Error uploading avatar: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Error uploading avatar: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/invoices")
+    public ResponseEntity<?> createInvoice(@RequestBody Map<String, Object> invoiceData, Principal principal) {
+        try {
+            System.out.println("=== CREATE INVOICE DEBUG ===");
+            System.out.println("Invoice data: " + invoiceData);
+            System.out.println("=========================");
+            
+            // Get orderId from invoice data
+            Long orderId = Long.valueOf(invoiceData.get("orderId").toString());
+            Order order = orderService.getById(orderId);
+            
+            // Create invoice
+            Invoice invoice = Invoice.builder()
+                    .order(order)
+                    .invoiceNumber("INV-" + System.currentTimeMillis()) // Generate unique invoice number
+                    .totalAmount(new BigDecimal(invoiceData.get("totalAmount").toString()))
+                    .taxAmount(new BigDecimal(invoiceData.get("taxAmount").toString()))
+                    .discountAmount(new BigDecimal(invoiceData.get("discountAmount").toString()))
+                    .finalAmount(new BigDecimal(invoiceData.get("finalAmount").toString()))
+                    .notes(invoiceData.get("notes").toString())
+                    .status(Invoice.InvoiceStatus.PENDING)
+                    .issueDate(LocalDateTime.now())
+                    .dueDate(LocalDateTime.now().plusDays(30)) // Due in 30 days
+                    .build();
+            
+            Invoice savedInvoice = invoiceRepository.save(invoice);
+            System.out.println("Invoice created with ID: " + savedInvoice.getId());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Invoice created successfully");
+            response.put("invoiceId", savedInvoice.getId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error creating invoice: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Error creating invoice: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/payments")
+    public ResponseEntity<?> createPayment(@RequestBody Map<String, Object> paymentData, Principal principal) {
+        try {
+            System.out.println("=== CREATE PAYMENT DEBUG ===");
+            System.out.println("Payment data: " + paymentData);
+            System.out.println("=========================");
+            
+            // Get orderId from payment data
+            Long orderId = Long.valueOf(paymentData.get("orderId").toString());
+            Order order = orderService.getById(orderId);
+            
+            // Create payment
+            Payment payment = Payment.builder()
+                    .orderRef(order)
+                    .amount(new BigDecimal(paymentData.get("amount").toString()))
+                    .method(paymentData.get("method").toString())
+                    .status("PENDING")
+                    .transactionId("TXN-" + System.currentTimeMillis()) // Generate unique transaction ID
+                    .build();
+            
+            Payment savedPayment = paymentRepository.save(payment);
+            System.out.println("Payment created with ID: " + savedPayment.getId());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Payment created successfully");
+            response.put("paymentId", savedPayment.getId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error creating payment: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Error creating payment: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/upload-image")
+    public ResponseEntity<?> uploadImage(@RequestParam("image") MultipartFile image, Principal principal) {
+        try {
+            System.out.println("Upload image request received");
+            System.out.println("Principal: " + (principal != null ? principal.getName() : "null"));
+            System.out.println("Image file: " + (image != null ? image.getOriginalFilename() : "null"));
+            
+            if (principal == null) {
+                return ResponseEntity.badRequest().body("User not authenticated");
+            }
+            
+            // Validate file
+            if (image == null || image.isEmpty()) {
+                System.out.println("No file uploaded");
+                return ResponseEntity.badRequest().body("No file uploaded");
+            }
+            
+            System.out.println("File details - Name: " + image.getOriginalFilename() + 
+                             ", Size: " + image.getSize() + 
+                             ", ContentType: " + image.getContentType());
+            
+            // Check file type
+            String contentType = image.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                System.out.println("Invalid file type: " + contentType);
+                return ResponseEntity.badRequest().body("File must be an image");
+            }
+            
+            // Check file size (max 5MB)
+            if (image.getSize() > 5 * 1024 * 1024) {
+                System.out.println("File too large: " + image.getSize());
+                return ResponseEntity.badRequest().body("File size must be less than 5MB");
+            }
+            
+            System.out.println("Uploading to Cloudinary...");
+            // Upload to Cloudinary
+            String imageUrl = cloudinaryStorageService.uploadFile(image);
+            System.out.println("Cloudinary URL: " + imageUrl);
+            
+            // Return the image URL
+            Map<String, String> response = new HashMap<>();
+            response.put("imageUrl", imageUrl);
+            response.put("message", "Image uploaded successfully");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error uploading image: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Error uploading image: " + e.getMessage());
         }
     }
 

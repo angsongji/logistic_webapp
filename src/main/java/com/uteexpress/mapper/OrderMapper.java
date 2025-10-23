@@ -20,6 +20,7 @@ public class OrderMapper {
                 .serviceType(dto.getServiceType())
                 .shipmentFee(dto.getShipmentFee())
                 .notes(dto.getNotes())
+                .imageUrl(dto.getImageUrl())
                 .build();
 
         // Items are not used in this project, skip mapping
@@ -29,6 +30,7 @@ public class OrderMapper {
 
     public static OrderResponseDto toDto(Order order) {
         return OrderResponseDto.builder()
+                .id(order.getId())
                 .orderCode(order.getOrderCode())
                 .senderName(order.getSenderName())
                 .senderPhone(order.getSenderPhone())
@@ -51,6 +53,7 @@ public class OrderMapper {
     
     public static OrderResponseDto toDtoWithInvoiceAndPayment(Order order, com.uteexpress.entity.Invoice invoice, com.uteexpress.entity.Payment payment) {
         return OrderResponseDto.builder()
+                .id(order.getId())
                 .orderCode(order.getOrderCode())
                 .senderName(order.getSenderName())
                 .senderPhone(order.getSenderPhone())
