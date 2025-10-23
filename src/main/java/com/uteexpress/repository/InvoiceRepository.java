@@ -7,11 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     List<Invoice> findByStatusOrderByIssueDateDesc(Invoice.InvoiceStatus status);
     List<Invoice> findByIssueDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+    Optional<Invoice> findByOrderId(Long orderId);
     
     @Query("SELECT SUM(i.finalAmount) FROM Invoice i WHERE i.status = :status")
     Double getTotalAmountByStatus(Invoice.InvoiceStatus status);

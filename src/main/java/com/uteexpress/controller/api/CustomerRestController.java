@@ -41,9 +41,26 @@ public class CustomerRestController {
     }
 
     @GetMapping("/orders")
-    public ResponseEntity<?> getMyOrders(Principal principal) {
-        var list = orderService.getOrdersByCustomerUsername(principal.getName());
-        return ResponseEntity.ok(list);
+    public ResponseEntity<?> getMyOrders(@RequestParam(value = "status", required = false) String status, Principal principal) {
+        try {
+            if (principal == null) {
+                return ResponseEntity.status(401).body("User not authenticated");
+            }
+            String username = principal.getName();
+            System.out.println("getMyOrders requested by user=" + username + ", status=" + status);
+
+            if (status == null || status.isBlank()) {
+                var list = orderService.getOrdersByCustomerUsername(username);
+                return ResponseEntity.ok(list);
+            } else {
+                var list = orderService.getOrdersByCustomerUsernameAndStatus(username, status);
+                return ResponseEntity.ok(list);
+            }
+        } catch (Exception e) {
+            System.err.println("Error in getMyOrders: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Error loading orders: " + e.getMessage());
+        }
     }
 
     @GetMapping("/orders/{code}")

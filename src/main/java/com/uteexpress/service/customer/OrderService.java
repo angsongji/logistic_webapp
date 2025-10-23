@@ -10,4 +10,5 @@ public interface OrderService {
     OrderResponseDto createOrder(User customer, OrderRequestDto dto) throws Exception;
     OrderResponseDto getByOrderCode(String code);
     List<OrderResponseDto> getOrdersByCustomerUsername(String username);
+    List<OrderResponseDto> getOrdersByCustomerUsernameAndStatus(String username, String status);
 }

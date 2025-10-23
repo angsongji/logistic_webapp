@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
-import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -57,10 +56,29 @@ public class Order {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
-    private com.uteexpress.entity.customer.Customer customer;
+    private User customer;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> items;
+    // optional shipper (may be null)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shipper_id")
+    private User shipper;
+
+    @Column(name = "cod_amount")
+    private BigDecimal codAmount;
+
+    @Column(name = "total_amount")
+    private BigDecimal totalAmount;
+
+    @Column(name = "weight")
+    private BigDecimal weight;
+
+    @Column(name = "pickup_date")
+    private LocalDateTime pickupDate;
+
+    @Column(name = "delivery_date")
+    private LocalDateTime deliveryDate;
+
+    // items removed: project does not use order_items table
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
