@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class OrderResponseDto {
+    private Long id;
     private String orderCode;
     private String senderName;
     private String senderPhone;

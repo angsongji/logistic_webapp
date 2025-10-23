@@ -22,6 +22,7 @@ public class OrderRequestDto {
     private Double weight;
     private Double codAmount;
     private String notes;
+    private String imageUrl;
     private List<OrderItemDto> items;
     private MultipartFile image;
 }

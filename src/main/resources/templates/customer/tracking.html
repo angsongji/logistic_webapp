@@ -218,6 +218,14 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="mb-2">
+                                        <div class="form-label fw-bold text-muted">Ghi chú</div>
+                                        <div class="form-control-plaintext bg-white p-2 rounded" id="resInvoiceNotes">-Không có-</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -365,7 +373,7 @@
                 document.getElementById('resInvoiceTotal').textContent = o.invoice.finalAmount ? o.invoice.finalAmount.toLocaleString('vi-VN') + ' ₫' : '-';
                 document.getElementById('resDueDate').textContent = o.invoice.dueDate ? new Date(o.invoice.dueDate).toLocaleString('vi-VN') : '-';
                 document.getElementById('resInvoicePaymentDate').textContent = o.invoice.paymentDate ? new Date(o.invoice.paymentDate).toLocaleString('vi-VN') : '-';
-                
+                document.getElementById('resInvoiceNotes').textContent = o.invoice.notes || 'Không có';
                 // Set invoice status badge with color
                 const invoiceStatusElement = document.getElementById('resInvoiceStatus');
                 const invoiceStatus = o.invoice.status || 'N/A';

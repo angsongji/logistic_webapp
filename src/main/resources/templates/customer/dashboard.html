@@ -331,6 +331,14 @@
                             </div>
                           </div>
                         </div>
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="mb-2">
+                              <div class="label-sm">Ghi chú</div>
+                              <div class="value-sm" id="detailInvoiceNotes">-</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -666,6 +674,7 @@
             setText("detailInvoiceTotal", o.invoice.finalAmount ? o.invoice.finalAmount.toLocaleString("vi-VN") + " ₫" : "-");
             setText("detailDueDate", o.invoice.dueDate ? new Date(o.invoice.dueDate).toLocaleString("vi-VN") : "-");
             setText("detailInvoicePaymentDate", o.invoice.paymentDate ? new Date(o.invoice.paymentDate).toLocaleString("vi-VN") : "-");
+            setText("detailInvoiceNotes", o.invoice.notes || "Không có");
             
             // Set invoice status badge with color
             const invoiceStatusElement = document.getElementById("detailInvoiceStatus");

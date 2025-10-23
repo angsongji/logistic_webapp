@@ -111,9 +111,9 @@
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Tiền COD (₫)</label>
+                      <label class="form-label fw-bold" id="codAmountLabel">Tiền COD (₫)</label>
                       <input type="number" class="form-control" name="codAmount" id="codAmount" min="0" placeholder="0">
-                      <small class="text-muted">Số tiền thu hộ từ người nhận</small>
+                      <small class="text-muted" id="codAmountHelp">Số tiền thu hộ từ người nhận</small>
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -126,12 +126,36 @@
                   <div class="col-12">
                     <div class="mb-3">
                       <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="recipientPays" onchange="toggleRecipientPayment()">
+                        <input class="form-check-input" type="checkbox" id="recipientPays" onchange="toggleRecipientPayment()" checked>
                         <label class="form-check-label fw-bold" for="recipientPays">
                           <i class="fas fa-user-check text-primary"></i> Người nhận thanh toán
                         </label>
                       </div>
                       <small class="text-muted">Khi bật, người nhận sẽ thanh toán phí vận chuyển thay vì người gửi</small>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Payment Information Section (chỉ hiện khi không check "Người nhận thanh toán") -->
+                <div class="row mb-4" id="paymentInfoSection" style="display: none;">
+                  <div class="col-12">
+                    <h5 class="text-success mb-3"><i class="fas fa-credit-card"></i> Thông tin thanh toán</h5>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Phương thức thanh toán <span class="text-danger">*</span></label>
+                      <select class="form-select" name="paymentMethod" id="paymentMethod" required>
+                        <option value="CASH" selected>💵 Tiền mặt</option>
+                        <option value="BANK_TRANSFER">🏦 Chuyển khoản ngân hàng</option>
+                        <option value="VNPAY">💳 VNPay</option>
+                        <option value="MOMO">📱 MoMo</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Ghi chú thanh toán</label>
+                      <textarea class="form-control" name="paymentNote" id="paymentNote" rows="2" placeholder="Ghi chú về phương thức thanh toán..."></textarea>
                     </div>
                   </div>
                 </div>
@@ -201,7 +225,7 @@
                               <span id="summaryShipmentFee">0 ₫</span>
                             </div>
                             <div class="d-flex justify-content-between">
-                              <span>Tiền COD:</span>
+                              <span id="summaryCodLabel">Tiền COD:</span>
                               <span id="summaryCodAmount">0 ₫</span>
                             </div>
                             <div class="d-flex justify-content-between">
@@ -211,7 +235,7 @@
                             <hr class="my-2">
                             <div class="d-flex justify-content-between">
                               <span><strong>Tổng:</strong></span>
-                              <span id="summaryFinalAmount" class="text-primary"><strong>-</strong></span>
+                              <span id="summaryFinalAmount"><strong>-</strong></span>
                             </div>
                             <hr class="my-2">
                             <div class="d-flex justify-content-between">
@@ -355,11 +379,22 @@
 
             let currentUser = null;
             let defaultAddress = null;
+            
+            // Cloudinary configuration - Sử dụng backend API thay vì upload trực tiếp
+            // const CLOUDINARY_CONFIG = {
+            //   cloudName: 'YOUR_CLOUD_NAME',
+            //   uploadPreset: 'uteexpress',
+            //   folder: 'orders'
+            // };
 
             // Load user info and default address on page load
             document.addEventListener('DOMContentLoaded', function() {
               loadUserInfo();
               loadDefaultAddress();
+              
+              // Initialize payment section visibility
+              console.log('🚀 Initializing payment section...');
+              toggleRecipientPayment();
             });
 
             // Load user information
@@ -625,15 +660,27 @@
 
             // Calculate shipping fee when service type or addresses change
             async function calculateShippingFee() {
+              console.log('🔄 Calculating shipping fee...');
               const pickupAddress = pickupAddressInput.value;
               const deliveryAddress = document.getElementById('recipientAddress').value;
+              const serviceType = serviceTypeSelect.value;
               const weight = parseFloat(document.getElementById('weight').value) || 0;
               const codAmount = parseFloat(document.getElementById('codAmount').value) || 0;
 
-              if (!pickupAddress || !deliveryAddress) {
+              console.log('📊 Input values:', { pickupAddress, deliveryAddress, serviceType, weight, codAmount });
+
+              // Kiểm tra đủ 3 trường: loại dịch vụ, cân nặng, COD
+              if (!serviceType || weight <= 0 || codAmount < 0) {
+                console.log('❌ Missing required fields: serviceType, weight, or codAmount');
                 shipmentFeeInput.value = '';
                 updateSummary();
                 return;
+              }
+
+              // Kiểm tra địa chỉ nếu có
+              if (!pickupAddress || !deliveryAddress) {
+                console.log('⚠️ Missing addresses, using fallback calculation');
+                // Vẫn tính phí nhưng dùng fallback
               }
 
               try {
@@ -641,12 +688,12 @@
                 shipmentFeeInput.value = 'Đang tính...';
                 shipmentFeeInput.disabled = true;
 
-                // Get selected pickup address details
+                // Get selected pickup address details (optional)
                 const selectedPickupAddress = addresses.find(a => String(a.id) === String(pickupAddress));
                 if (!selectedPickupAddress) {
-                  shipmentFeeInput.value = '';
-                  shipmentFeeInput.disabled = false;
-                  updateSummary();
+                  console.log('⚠️ No pickup address selected, using fallback calculation');
+                  // Vẫn tính phí nhưng dùng fallback
+                  calculateShippingFeeManually(null, deliveryAddress || 'Hà Nội', weight, codAmount);
                   return;
                 }
 
@@ -665,6 +712,7 @@
                 };
 
                 // Call API to calculate shipping fee
+                console.log('🌐 Calling API with data:', requestData);
                 const response = await fetch('/api/customer/calculate-shipping-fee', {
                   method: 'POST',
                   headers: {
@@ -674,10 +722,13 @@
                   body: JSON.stringify(requestData)
                 });
 
+                console.log('📡 API response status:', response.status);
                 if (response.ok) {
                   const result = await response.json();
+                  console.log('✅ API result:', result);
                   shipmentFeeInput.value = result.shippingFee || 0;
                 } else {
+                  console.log('❌ API failed, using fallback');
                   // Fallback to manual calculation if API fails
                   calculateShippingFeeManually(selectedPickupAddress, deliveryAddress, weight, codAmount);
                 }
@@ -698,6 +749,7 @@
 
             // Manual calculation fallback
             function calculateShippingFeeManually(pickupAddress, deliveryAddress, weight, codAmount) {
+              console.log('🔧 Using manual calculation fallback');
               let baseFee = 0;
               const serviceType = serviceTypeSelect.value;
 
@@ -715,6 +767,8 @@
                 default:
                   baseFee = 25000;
               }
+              
+              console.log('💰 Base fee:', baseFee, 'for service type:', serviceType);
 
               // Weight-based fee
               let weightFee = 0;
@@ -738,16 +792,29 @@
 
               // Distance-based fee (simplified)
               let distanceFee = 0;
-              const pickupCity = pickupAddress.city || '';
-              const deliveryCity = deliveryAddress.split(',')[1]?.trim() || '';
-              
-              if (pickupCity !== deliveryCity) {
-                distanceFee = 10000; // Inter-city fee
+              if (pickupAddress && deliveryAddress) {
+                const pickupCity = pickupAddress.city || '';
+                const deliveryCity = deliveryAddress.split(',')[1]?.trim() || '';
+                
+                if (pickupCity !== deliveryCity) {
+                  distanceFee = 10000; // Inter-city fee
+                }
+              } else {
+                // Default distance fee when no addresses
+                distanceFee = 5000;
               }
 
               // Calculate final fee
               const finalFee = baseFee + weightFee + codFee + distanceFee;
+              console.log('🧮 Final calculation:', {
+                baseFee,
+                weightFee,
+                codFee,
+                distanceFee,
+                finalFee: Math.round(finalFee)
+              });
               shipmentFeeInput.value = Math.round(finalFee);
+              console.log('✅ Shipping fee set to:', shipmentFeeInput.value);
             }
 
             // Update summary section
@@ -853,17 +920,59 @@
               previewContainer.style.display = 'none';
             }
 
+            // Get payment method text
+            function getPaymentMethodText(method) {
+              const methods = {
+                'CASH': 'Tiền mặt',
+                'BANK_TRANSFER': 'Chuyển khoản ngân hàng',
+                'VNPAY': 'VNPay',
+                'MOMO': 'MoMo',
+              };
+              return methods[method] || method;
+            }
+
             // Toggle recipient payment function
             function toggleRecipientPayment() {
+              console.log('🔄 Toggle recipient payment function called');
               const recipientPays = document.getElementById('recipientPays').checked;
               const summaryPayer = document.getElementById('summaryPayer');
+              const paymentInfoSection = document.getElementById('paymentInfoSection');
+              const paymentMethodSelect = document.getElementById('paymentMethod');
+              const codAmountLabel = document.getElementById('codAmountLabel');
+              const codAmountHelp = document.getElementById('codAmountHelp');
+              const summaryCodLabel = document.getElementById('summaryCodLabel');
+              
+              console.log('📊 Current state:', { 
+                recipientPays, 
+                paymentInfoSection: !!paymentInfoSection, 
+                paymentMethodSelect: !!paymentMethodSelect 
+              });
               
               if (recipientPays) {
+                // Người nhận thanh toán - ẩn section thanh toán, hiện COD
+                console.log('✅ Người nhận thanh toán - ẩn section thanh toán, hiện COD');
                 summaryPayer.innerHTML = '<strong class="text-success">Người nhận</strong>';
                 summaryPayer.className = 'text-success';
+                paymentInfoSection.style.display = 'none';
+                paymentMethodSelect.required = false;
+                paymentMethodSelect.value = '';
+                
+                // Thay đổi label và help text cho COD
+                codAmountLabel.textContent = 'Tiền COD (₫)';
+                codAmountHelp.textContent = 'Số tiền thu hộ từ người nhận';
+                summaryCodLabel.textContent = 'Tiền COD:';
               } else {
+                // Người gửi thanh toán - hiện section thanh toán, hiện Tiền hàng
+                console.log('✅ Người gửi thanh toán - hiện section thanh toán, hiện Tiền hàng');
                 summaryPayer.innerHTML = '<strong class="text-primary">Người gửi</strong>';
                 summaryPayer.className = 'text-primary';
+                paymentInfoSection.style.display = 'block';
+                paymentMethodSelect.required = true;
+                
+                // Thay đổi label và help text cho Tiền hàng
+                codAmountLabel.textContent = 'Tiền hàng (₫)';
+                codAmountHelp.textContent = 'Giá trị hàng hóa cần vận chuyển';
+                summaryCodLabel.textContent = 'Tiền hàng:';
               }
               
               // Chỉ cập nhật summary, không tính lại phí vận chuyển
@@ -874,14 +983,20 @@
             function resetForm() {
               form.reset();
               pickupAddressInput.value = '';
-              customPickupAddressInput.value = '';
               
               // Reset image preview
               const previewContainer = document.getElementById('imagePreviewContainer');
               previewContainer.style.display = 'none';
               
-              // Reset recipient payment checkbox
-              document.getElementById('recipientPays').checked = false;
+              // Reset recipient payment checkbox (mặc định check)
+              document.getElementById('recipientPays').checked = true;
+              
+              // Reset payment info section
+              const paymentInfoSection = document.getElementById('paymentInfoSection');
+              const paymentMethodSelect = document.getElementById('paymentMethod');
+              paymentInfoSection.style.display = 'none';
+              paymentMethodSelect.required = false;
+              paymentMethodSelect.value = '';
               
               updateSummary();
             }
@@ -892,81 +1007,366 @@
             document.getElementById('recipientAddress').addEventListener("input", debounce(calculateShippingFee, 1000));
             document.getElementById('weight').addEventListener("input", debounce(calculateShippingFee, 1000));
             document.getElementById('codAmount').addEventListener("input", debounce(calculateShippingFee, 1000));
-            
-            // Update summary when values change
-            document.getElementById('weight').addEventListener("input", updateSummary);
-            document.getElementById('codAmount').addEventListener("input", updateSummary);
+
+            // Test function để kiểm tra đủ 3 trường
+            function testCalculateFee() {
+              const serviceType = serviceTypeSelect.value;
+              const weight = parseFloat(document.getElementById('weight').value) || 0;
+              const codAmount = parseFloat(document.getElementById('codAmount').value) || 0;
+              
+              console.log('🧪 Test calculate fee:', { serviceType, weight, codAmount });
+              
+              if (serviceType && weight > 0 && codAmount >= 0) {
+                console.log('✅ Đủ 3 trường, tính phí ngay!');
+                calculateShippingFee();
+              } else {
+                console.log('❌ Thiếu trường:', { 
+                  serviceType: !serviceType, 
+                  weight: weight <= 0, 
+                  codAmount: codAmount < 0 
+                });
+              }
+            }
+
+            // Thêm event listeners để test
+            serviceTypeSelect.addEventListener("change", testCalculateFee);
+            document.getElementById('weight').addEventListener("input", debounce(testCalculateFee, 500));
+            document.getElementById('codAmount').addEventListener("input", debounce(testCalculateFee, 500));
 
             // Form submission
-            form.addEventListener("submit", async (e) => {
+            form.addEventListener("submit", function(e) {
               e.preventDefault();
-              
-              // Validate required fields
-              const requiredFields = ['recipientName', 'recipientPhone', 'recipientAddress', 'serviceType'];
-              let isValid = true;
-              
-              requiredFields.forEach(fieldName => {
-                const field = document.getElementById(fieldName);
-                if (!field.value.trim()) {
-                  field.classList.add('is-invalid');
-                  isValid = false;
-                } else {
-                  field.classList.remove('is-invalid');
-                }
-              });
+              onSubmit();
+            });
 
-              if (!pickupAddressInput.value.trim()) {
-                alert('Vui lòng chọn địa chỉ lấy hàng!');
-                isValid = false;
-              }
-
-              if (!isValid) {
-                alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+            // Main form submission function
+            async function onSubmit() {
+              console.log('🚀 Form submission started');
+              
+              // Validate all required fields
+              if (!validateForm()) {
+                console.log('❌ Form validation failed');
                 return;
               }
-
+              
+              // Collect form data
+              const formData = collectFormData();
+              
+              // Console log the data
+              console.log('📊 Form Data:', formData);
+              
+              // Show loading state
+              const submitBtn = document.querySelector('button[type="submit"]');
+              const originalText = submitBtn.innerHTML;
+              submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tạo...';
+              submitBtn.disabled = true;
+              
               try {
-                const formData = new FormData(form);
+                // Create order
+                const orderResponse = await createOrder(formData);
+                console.log('✅ Order created:', orderResponse);
                 
-                // Add payment method info to notes
-                const recipientPays = document.getElementById('recipientPays').checked;
-                const currentNotes = document.getElementById('notes').value;
-                const paymentInfo = recipientPays ? 
-                  "\n\n[THANH TOÁN: Người nhận thanh toán phí vận chuyển]" : 
-                  "\n\n[THANH TOÁN: Người gửi thanh toán phí vận chuyển]";
+                // Create invoice
+                const invoiceResponse = await createInvoice(orderResponse.id, formData);
+                console.log('✅ Invoice created:', invoiceResponse);
                 
-                formData.set('notes', currentNotes + paymentInfo);
-                
-                const submitBtn = form.querySelector('button[type="submit"]');
-                const originalText = submitBtn.innerHTML;
-                
-                // Show loading state
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tạo...';
-                submitBtn.disabled = true;
-
-                const res = await fetch("/api/customer/orders", {
-                  method: "POST",
-                  credentials: "include",
-                  body: formData,
-                });
-
-                if (res.ok) {
-                  const result = await res.json();
-                  alert("Tạo đơn hàng thành công! Mã đơn hàng: " + result.orderCode);
-                  window.location.href = "/web/customer/dashboard";
-                } else {
-                  const error = await res.text();
-                  alert("Lỗi khi tạo đơn hàng: " + error);
+                // Create payment if sender pays
+                if (!formData.recipientPays) {
+                  const paymentResponse = await createPayment(orderResponse.id, formData);
+                  console.log('✅ Payment created:', paymentResponse);
                 }
+                
+                // Show success message
+                alert(`✅ Tạo đơn hàng thành công!`);
+                
+                // Reset form
+                resetForm();
+                
               } catch (error) {
-                console.error('Error:', error);
-                alert("Lỗi khi tạo đơn hàng!");
+                console.error('❌ Error creating order:', error);
+                alert('❌ Lỗi khi tạo đơn hàng: ' + error.message);
               } finally {
                 // Reset button state
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
               }
-            });
+            }
+
+            // Validate form function
+            function validateForm() {
+              console.log('🔍 Starting form validation...');
+              let isValid = true;
+              
+              // Required fields validation
+              const requiredFields = [
+                { id: 'recipientName', name: 'Tên người nhận' },
+                { id: 'recipientPhone', name: 'Số điện thoại người nhận' },
+                { id: 'recipientAddress', name: 'Địa chỉ người nhận' },
+                { id: 'serviceType', name: 'Loại dịch vụ' },
+                { id: 'weight', name: 'Cân nặng' },
+                { id: 'codAmount', name: 'Tiền COD/Tiền hàng' }
+              ];
+              
+              // Validate each required field
+              requiredFields.forEach(field => {
+                const element = document.getElementById(field.id);
+                if (!element || !element.value.trim()) {
+                  console.log(`❌ Missing: ${field.name}`);
+                  element.classList.add('is-invalid');
+                  isValid = false;
+                } else {
+                  element.classList.remove('is-invalid');
+                  console.log(`✅ ${field.name}: ${element.value}`);
+                }
+              });
+              
+              // Validate pickup address
+              if (!pickupAddressInput.value.trim()) {
+                console.log('❌ Missing: Địa chỉ lấy hàng');
+                alert('Vui lòng chọn địa chỉ lấy hàng!');
+                isValid = false;
+              } else {
+                console.log('✅ Địa chỉ lấy hàng:', pickupAddressInput.value);
+              }
+              
+              // Validate payment method if sender pays
+              const recipientPays = document.getElementById('recipientPays').checked;
+              if (!recipientPays) {
+                const paymentMethod = document.getElementById('paymentMethod').value;
+                if (!paymentMethod) {
+                  console.log('❌ Missing: Phương thức thanh toán');
+                  document.getElementById('paymentMethod').classList.add('is-invalid');
+                  alert('Vui lòng chọn phương thức thanh toán!');
+                  isValid = false;
+                } else {
+                  document.getElementById('paymentMethod').classList.remove('is-invalid');
+                  console.log('✅ Phương thức thanh toán:', paymentMethod);
+                }
+              }
+              
+              if (!isValid) {
+                alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+              }
+              
+              return isValid;
+            }
+
+            // Collect form data function
+            function collectFormData() {
+              const recipientPays = document.getElementById('recipientPays').checked;
+              const currentNotes = document.getElementById('notes').value;
+              
+              // Payment info is handled separately in createInvoice and createPayment
+              
+              // Collect all form data
+              const data = {
+                // Sender info
+                senderName: document.getElementById('senderName').value,
+                senderPhone: document.getElementById('senderPhone').value,
+                pickupAddress: pickupAddressInput.value,
+                
+                // Recipient info
+                recipientName: document.getElementById('recipientName').value,
+                recipientPhone: document.getElementById('recipientPhone').value,
+                recipientAddress: document.getElementById('recipientAddress').value,
+                
+                // Service info
+                serviceType: document.getElementById('serviceType').value,
+                weight: parseFloat(document.getElementById('weight').value) || 0,
+                codAmount: parseFloat(document.getElementById('codAmount').value) || 0,
+                shipmentFee: parseFloat(document.getElementById('shipmentFee').value) || 0,
+                
+                // Payment info
+                recipientPays: recipientPays,
+                paymentMethod: recipientPays ? null : document.getElementById('paymentMethod').value,
+                paymentNote: recipientPays ? null : document.getElementById('paymentNote').value,
+                
+                // Additional info
+                notes: currentNotes,
+                imageFile: document.getElementById('image').files[0] || null
+              };
+              
+              return data;
+            }
+
+            // Upload image via dedicated upload API
+            async function uploadImageToCloudinary(imageFile) {
+              if (!imageFile) return null;
+              
+              console.log('📸 Uploading image via upload API...');
+              console.log('📸 File info:', {
+                name: imageFile.name,
+                size: imageFile.size,
+                type: imageFile.type
+              });
+              
+              const formData = new FormData();
+              formData.append('image', imageFile); // Sử dụng 'image' cho endpoint mới
+              
+              try {
+                const response = await fetch('/api/customer/upload-image', {
+                  method: 'POST',
+                  credentials: 'include',
+                  body: formData
+                });
+                
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  console.error('❌ Upload response error:', errorText);
+                  throw new Error(`Image upload failed: ${response.status} ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                console.log('✅ Image uploaded successfully:', {
+                  imageUrl: result.imageUrl
+                });
+                return result.imageUrl; // Trả về imageUrl từ upload API
+              } catch (error) {
+                console.error('❌ Image upload error:', error);
+                throw new Error(`Không thể upload ảnh: ${error.message}`);
+              }
+            }
+
+            // Create order API call
+            async function createOrder(formData) {
+              console.log('📦 Creating order...');
+              
+              // Upload image if exists
+              let imageUrl = null;
+              const imageFile = document.getElementById('image').files[0];
+              if (imageFile) {
+                imageUrl = await uploadImageToCloudinary(imageFile);
+              }
+              
+              const orderData = {
+                senderName: formData.senderName,
+                senderPhone: formData.senderPhone,
+                senderAddress: formData.pickupAddress, // Map pickupAddress to senderAddress
+                recipientName: formData.recipientName,
+                recipientPhone: formData.recipientPhone,
+                recipientAddress: formData.recipientAddress,
+                serviceType: formData.serviceType,
+                weight: formData.weight,
+                codAmount: formData.codAmount,
+                shipmentFee: formData.shipmentFee,
+                notes: formData.notes,
+                imageUrl: imageUrl
+              };
+              
+              // Debug validation
+              console.log('📦 Order data validation:');
+              console.log('  - senderName:', orderData.senderName);
+              console.log('  - senderPhone:', orderData.senderPhone);
+              console.log('  - senderAddress:', orderData.senderAddress);
+              console.log('  - recipientName:', orderData.recipientName);
+              console.log('  - recipientPhone:', orderData.recipientPhone);
+              console.log('  - recipientAddress:', orderData.recipientAddress);
+              console.log('  - serviceType:', orderData.serviceType);
+              console.log('  - weight:', orderData.weight);
+              console.log('  - codAmount:', orderData.codAmount);
+              console.log('  - shipmentFee:', orderData.shipmentFee);
+              console.log('  - notes:', orderData.notes);
+              console.log('  - imageUrl:', orderData.imageUrl);
+              
+              // Debug recipientAddress
+              console.log('🔍 Debug recipientAddress:');
+              console.log('  - formData.recipientAddress:', formData.recipientAddress);
+              console.log('  - orderData.recipientAddress:', orderData.recipientAddress);
+              console.log('  - DOM element value:', document.getElementById('recipientAddress').value);
+              console.log('  - DOM element value length:', document.getElementById('recipientAddress').value.length);
+              console.log('  - DOM element value trimmed:', document.getElementById('recipientAddress').value.trim());
+              
+              // Check if recipientAddress is empty
+              if (!orderData.recipientAddress || orderData.recipientAddress.trim() === '') {
+                console.error('❌ recipientAddress is empty or null!');
+                console.error('❌ Raw form data recipientAddress:', formData.recipientAddress);
+                console.error('❌ DOM element value:', document.getElementById('recipientAddress').value);
+                throw new Error('recipientAddress is required but was empty');
+              }
+              
+              console.log('📦 Order data:', orderData);
+              
+              const response = await fetch('/api/customer/orders', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(orderData)
+              });
+              
+              if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`Order creation failed: ${error}`);
+              }
+              
+              return await response.json();
+            }
+
+            // Create invoice API call
+            async function createInvoice(orderId, formData) {
+              console.log('🧾 Creating invoice...');
+              
+              const invoiceData = {
+                orderId: orderId,
+                totalAmount: formData.shipmentFee + formData.codAmount,
+                taxAmount: (formData.shipmentFee + formData.codAmount) * 0.1,
+                discountAmount: 0,
+                finalAmount: (formData.shipmentFee + formData.codAmount) * 1.1,
+                notes: formData.recipientPays ? 
+                  'Thanh toán bởi người nhận hàng' : 
+                  'Thanh toán bởi người gửi hàng'
+              };
+              
+              console.log('🧾 Invoice data:', invoiceData);
+              
+              const response = await fetch('/api/customer/invoices', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(invoiceData)
+              });
+              
+              if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`Invoice creation failed: ${error}`);
+              }
+              
+              return await response.json();
+            }
+
+            // Create payment API call
+            async function createPayment(orderId, formData) {
+              console.log('💳 Creating payment...');
+              
+              const paymentData = {
+                orderId: orderId,
+                amount: formData.shipmentFee + formData.codAmount,
+                method: formData.paymentMethod,
+                status: 'PENDING',
+                notes: formData.paymentNote || ''
+              };
+              
+              console.log('💳 Payment data:', paymentData);
+              
+              const response = await fetch('/api/customer/payments', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(paymentData)
+              });
+              
+              if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`Payment creation failed: ${error}`);
+              }
+              
+              return await response.json();
+            }
            </script>
     </div>
 

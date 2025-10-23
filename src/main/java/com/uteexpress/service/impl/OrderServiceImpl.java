@@ -191,4 +191,10 @@ public class OrderServiceImpl implements OrderService {
             return OrderMapper.toDtoWithInvoiceAndPayment(order, invoice, payment);
         }).collect(Collectors.toList());
     }
+
+    @Override
+    public Order getById(Long id) {
+        return orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+    }
 }
