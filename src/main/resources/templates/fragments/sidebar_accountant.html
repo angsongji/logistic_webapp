@@ -153,7 +153,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Get current path
             const currentPath = window.location.pathname;
-            console.log('Current path:', currentPath);
             
             // Remove all active classes first
             document.querySelectorAll('.accountant-sidebar .nav-link').forEach(link => {
@@ -164,11 +163,9 @@
             let found = false;
             document.querySelectorAll('.accountant-sidebar .nav-link').forEach(link => {
                 const linkHref = link.getAttribute('href');
-                console.log('Checking link:', linkHref);
                 
                 if (linkHref === currentPath) {
                     link.classList.add('active');
-                    console.log('Active set for:', linkHref);
                     found = true;
                 }
             });
@@ -179,8 +176,7 @@
                     const linkHref = link.getAttribute('href');
                     if (currentPath.startsWith(linkHref) && linkHref !== '/') {
                         link.classList.add('active');
-                        console.log('Active set (partial match) for:', linkHref);
-                    }
+                      }
                 });
             }
         });

@@ -151,8 +151,7 @@
 
       // Upload avatar to server
       async function uploadAvatar(file) {
-        console.log("Uploading avatar:", file.name, file.size, file.type);
-
+       
         const formData = new FormData();
         formData.append("avatar", file);
 
@@ -163,12 +162,9 @@
             body: formData,
           });
 
-          console.log("Response status:", response.status);
-
+         
           if (response.ok) {
             const user = await response.json();
-            console.log("Upload successful:", user);
-
             // Update avatar preview with new URL
             if (user.avatarUrl) {
               document.getElementById("avatarPreview").src = user.avatarUrl;
@@ -221,8 +217,6 @@
             fullName,
             phone,
           };
-          console.log("Saving profile data:", profileData);
-
           const profileResponse = await fetch("/api/customer/profile", {
             method: "PUT",
             headers: {
@@ -233,12 +227,7 @@
           });
 
           const profileText = await profileResponse.text();
-          console.log(
-            "Profile PUT response status:",
-            profileResponse.status,
-            "body:",
-            profileText
-          );
+         
           if (!profileResponse.ok) {
             showAlert("danger", "Lỗi cập nhật thông tin: " + profileText);
             return;
@@ -248,9 +237,8 @@
           let updatedUser = null;
           try {
             updatedUser = JSON.parse(profileText);
-            console.log("Updated user from server:", updatedUser);
           } catch (e) {
-            console.log("Profile update returned non-JSON response");
+            console.error(e);
           }
 
           // If no avatar to upload, show success and reload
@@ -264,7 +252,6 @@
 
           // Then, upload avatar if a new one was selected
           if (window.selectedAvatarFile) {
-            console.log("Uploading new avatar...");
             const avatarFormData = new FormData();
             avatarFormData.append("avatar", window.selectedAvatarFile);
 
@@ -279,10 +266,8 @@
               if (user.avatarUrl) {
                 document.getElementById("avatarPreview").src = user.avatarUrl;
               }
-              console.log("Avatar uploaded successfully");
             } else {
               const avatarError = await avatarResponse.text();
-              console.error("Avatar upload failed:", avatarError);
               showAlert(
                 "warning",
                 "Thông tin đã được cập nhật nhưng ảnh đại diện thất bại: " +
@@ -333,8 +318,6 @@
               user.fullName || "";
             document.getElementById("profilePhoneMain").value =
               user.phone || "";
-
-            console.log("Profile loaded:", user);
           }
         } catch (error) {
           console.error("Error loading profile:", error);

@@ -268,7 +268,6 @@
 <script th:inline="javascript">
     /*<![CDATA[*/
     const invoiceId = /*[[${invoiceId}]]*/ 0;
-    console.log('Invoice ID from Thymeleaf:', invoiceId);
     
     if (!invoiceId || invoiceId === 0) {
         alert('Lỗi: Không có ID hóa đơn!');
@@ -277,7 +276,6 @@
 
     async function loadInvoiceDetail() {
         try {
-            console.log('Fetching invoice with ID:', invoiceId);
             // Load invoice data
             const invoiceRes = await fetch(`/api/accountant/invoices/${invoiceId}`, {
                 credentials: 'include'

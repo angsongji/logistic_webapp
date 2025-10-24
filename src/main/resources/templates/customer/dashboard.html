@@ -424,7 +424,6 @@
             );
           }
           const data = await res.json();
-          console.log("API Response:", data);
           
           // Handle different response structures
           if (Array.isArray(data)) {
@@ -458,8 +457,6 @@
 
         tbody.innerHTML = orders
           .map((o) => {
-            console.log("Order data:", o);
-            
             // Handle different data structures from accountant API
             const statusBadge = getStatusBadge(o.status || o.orderStatus);
             
@@ -470,11 +467,11 @@
             const recipient_address = o.recipientAddress || o.deliveryAddress || "N/A";
             
             // Try different field names for amount
-            const total_amount = o.totalAmount || o.finalAmount || o.amount || 0;
+            const finalAmount = o.invoice?.finalAmount || 0;
             
             // Try different field names for date
-            const created = o.createdAt || o.issueDate || o.createdDate
-              ? new Date(o.createdAt || o.issueDate || o.createdDate).toLocaleString("vi-VN")
+            const created = o.createdAt 
+              ? new Date(o.createdAt).toLocaleString("vi-VN")
               : "-";
 
             return `
@@ -482,7 +479,7 @@
           <td><strong>${code}</strong></td>
           <td class="text-truncate" style="max-width: 200px;">${recipient_address}</td>
           <td>${statusBadge}</td>
-          <td><strong>${Number(total_amount).toLocaleString(
+          <td><strong>${Number(finalAmount).toLocaleString(
             "vi-VN"
           )} ₫</strong></td>
           <td>${created}</td>
