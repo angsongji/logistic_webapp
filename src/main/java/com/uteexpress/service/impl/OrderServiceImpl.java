@@ -71,8 +71,8 @@ public class OrderServiceImpl implements OrderService {
                 ShippingFeeRequestDto feeRequest = new ShippingFeeRequestDto();
                 feeRequest.setDeliveryAddress(dto.getRecipientAddress());
                 feeRequest.setServiceType(dto.getServiceType().toString());
-                feeRequest.setWeight(dto.getWeight());
-                feeRequest.setCodAmount(dto.getCodAmount());
+                feeRequest.setWeight(dto.getWeight() != null ? dto.getWeight().doubleValue() : null);
+                feeRequest.setCodAmount(dto.getCodAmount() != null ? dto.getCodAmount().doubleValue() : null);
                 
                 // Create pickup address from sender address
                 ShippingFeeRequestDto.AddressDto pickupAddress = new ShippingFeeRequestDto.AddressDto();
@@ -85,6 +85,11 @@ public class OrderServiceImpl implements OrderService {
                     dto.setShipmentFee(BigDecimal.valueOf(feeResponse.getShippingFee()));
                 }
             }
+        }
+
+        // Calculate total amount (shipmentFee + codAmount)
+        if (order.getShipmentFee() != null && order.getCodAmount() != null) {
+            order.setTotalAmount(order.getShipmentFee().add(order.getCodAmount()));
         }
 
         // persist order (items cascade)

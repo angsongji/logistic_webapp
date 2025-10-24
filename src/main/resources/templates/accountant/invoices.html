@@ -44,12 +44,10 @@
             return;
           }
           const data = await res.json();
-          console.log('Invoices data:', data); // Debug
           const tbody = document.getElementById("invoices-table");
           tbody.innerHTML = data
             .map(
               (inv) => {
-                console.log('Invoice ID:', inv.id); // Debug
                 return `<tr>
                     <td>${inv.id}</td>
                     <td>${inv.invoiceNumber}</td>
@@ -85,7 +83,6 @@
         }
 
         function view(id) {
-          console.log('View clicked with ID:', id); // Debug
           if (!id || id === 0) {
             alert('ID không hợp lệ: ' + id);
             return;

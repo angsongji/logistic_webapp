@@ -42,6 +42,15 @@ public class Order {
     @Column(nullable = false)
     private BigDecimal shipmentFee;
 
+    @Column(name = "cod_amount", precision = 19, scale = 2)
+    private BigDecimal codAmount;
+
+    @Column(name = "total_amount", precision = 19, scale = 2)
+    private BigDecimal totalAmount;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal weight;
+
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String notes;
     

@@ -56,6 +56,9 @@ public class CustomerRestController {
             System.out.println("DTO recipientName: " + dto.getRecipientName());
             System.out.println("DTO recipientPhone: " + dto.getRecipientPhone());
             System.out.println("DTO senderAddress: " + dto.getSenderAddress());
+            System.out.println("DTO codAmount: " + dto.getCodAmount());
+            System.out.println("DTO weight: " + dto.getWeight());
+            System.out.println("DTO shipmentFee: " + dto.getShipmentFee());
             System.out.println("DTO imageUrl: " + dto.getImageUrl());
             System.out.println("=========================");
             

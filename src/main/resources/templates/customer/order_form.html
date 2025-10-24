@@ -152,12 +152,12 @@
                       </select>
                     </div>
                   </div>
-                  <div class="col-md-6">
+                  <!-- <div class="col-md-6">
                     <div class="mb-3">
                       <label class="form-label fw-bold">Ghi chú thanh toán</label>
                       <textarea class="form-control" name="paymentNote" id="paymentNote" rows="2" placeholder="Ghi chú về phương thức thanh toán..."></textarea>
                     </div>
-                  </div>
+                  </div> -->
                 </div>
 
                 <!-- Additional Information Section -->
@@ -259,7 +259,7 @@
                       <button type="button" class="btn btn-outline-secondary btn-lg" onclick="resetForm()">
                         <i class="fas fa-undo"></i> Reset
                       </button>
-                      <a href="/web/customer/dashboard" class="btn btn-outline-danger btn-lg">
+                      <a href="/web/customer/dashboard" class="btn btn-outline-danger btn-lg" id="btnCancel">
                         <i class="fas fa-times"></i> Hủy
                       </a>
                     </div>
@@ -269,7 +269,7 @@
             </div>
           </div>
         </div>
-            </div>
+      </div>
 
       <!-- Address Selection Modal -->
       <div class="modal fade" id="addressModal" tabindex="-1" aria-hidden="true">
@@ -295,7 +295,7 @@
             </div>
           </div>
         </div>
-            </div>
+      </div>
 
       <!-- Add Address Modal -->
       <div class="modal fade" id="addAddressModal" tabindex="-1" aria-hidden="true">
@@ -309,44 +309,41 @@
               <form id="addAddressForm">
                 <input type="hidden" id="addressId" value="">
                 <div class="mb-3">
-                  <label class="form-label fw-bold">Tên địa chỉ <span class="text-danger">*</span></label>
+                  <label class="form-label fw-bold">Họ và tên <span class="text-danger">*</span></label>
                   <input type="text" class="form-control" id="name" required placeholder="Ví dụ: Nhà riêng, Công ty...">
                 </div>
                 <div class="mb-3">
-                  <label class="form-label fw-bold">Số điện thoại</label>
-                  <input type="tel" class="form-control" id="phone" placeholder="Số điện thoại liên hệ">
+                  <label class="form-label fw-bold">Số điện thoại <span class="text-danger">*</span></label>
+                  <input type="tel" class="form-control" id="phone" required placeholder="VD: 0901234567">
+                  <div class="form-text">Chỉ nhập số, 9–11 ký tự.</div>
                 </div>
                 <div class="mb-3">
                   <label class="form-label fw-bold">Địa chỉ chi tiết <span class="text-danger">*</span></label>
-                  <textarea class="form-control" id="address" rows="3" required placeholder="Nhập địa chỉ chi tiết..."></textarea>
+                  <textarea class="form-control" id="address" rows="3" required placeholder="Số nhà, đường, ..."></textarea>
                 </div>
                 <div class="row">
-                  <div class="col-md-6">
+                  <div class="col-md-4">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Thành phố</label>
-                      <input type="text" class="form-control" id="city" placeholder="Thành phố">
+                      <label class="form-label fw-bold">Tỉnh/Thành phố</label>
+                      <input type="text" class="form-control" id="city" placeholder="Tỉnh/Thành phố">
                     </div>
                   </div>
-                  <div class="col-md-6">
+                  <div class="col-md-4">
                     <div class="mb-3">
                       <label class="form-label fw-bold">Quận/Huyện</label>
                       <input type="text" class="form-control" id="district" placeholder="Quận/Huyện">
                     </div>
                   </div>
-                </div>
-                <div class="row">
-                  <div class="col-md-6">
+                  <div class="col-md-4">
                     <div class="mb-3">
                       <label class="form-label fw-bold">Phường/Xã</label>
                       <input type="text" class="form-control" id="ward" placeholder="Phường/Xã">
                     </div>
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label fw-bold">Mã bưu điện</label>
-                      <input type="text" class="form-control" id="postalCode" placeholder="Mã bưu điện">
-                    </div>
-                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-bold">Mã bưu điện</label>
+                  <input type="text" class="form-control" id="postalCode" placeholder="VD: 700000">
                 </div>
                 <div class="mb-3">
                   <div class="form-check">
@@ -357,11 +354,11 @@
                   </div>
                 </div>
                 <div id="addressFormAlert" class="alert d-none" role="alert"></div>
-          </form>
+              </form>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-              <button type="button" class="btn btn-primary" onclick="saveNewAddress()">
+              <button type="button" class="btn btn-primary" onclick="saveNewAddress(event); return false;">
                 <i class="fas fa-save"></i> Lưu địa chỉ
               </button>
             </div>
@@ -392,8 +389,6 @@
               loadUserInfo();
               loadDefaultAddress();
               
-              // Initialize payment section visibility
-              console.log('🚀 Initializing payment section...');
               toggleRecipientPayment();
             });
 
@@ -425,30 +420,47 @@
                   credentials: 'include'
                 });
                 if (response.ok) {
-                  const addresses = await response.json();
+                  const addressesData = await response.json();
+                  // Update global addresses array
+                  addresses = addressesData;
+                 
                   
                   // Find default address
                   defaultAddress = addresses.find(addr => addr.isDefault) || addresses[0];
                   
                   if (defaultAddress) {
                     updateDefaultAddressDisplay(defaultAddress);
-                    pickupAddressInput.value = defaultAddress.address;
+                    pickupAddressInput.value = defaultAddress.id; // Store address ID instead of address text
                     calculateShippingFee();
                     updateSummary();
+                  } else {
+                    // No addresses available
+                    updateDefaultAddressDisplay(null);
+                    pickupAddressInput.value = '';
                   }
                 } else {
                   console.warn('Không thể tải danh sách địa chỉ');
+                  updateDefaultAddressDisplay(null);
+                  pickupAddressInput.value = '';
                 }
               } catch (error) {
                 console.error('Lỗi khi tải địa chỉ:', error);
+                updateDefaultAddressDisplay(null);
+                pickupAddressInput.value = '';
               }
             }
 
             // Update default address display
             function updateDefaultAddressDisplay(address) {
-              document.getElementById('defaultAddressName').textContent = address.name || 'Không có tên';
-              document.getElementById('defaultAddressPhone').textContent = address.phone || 'Không có SĐT';
-              document.getElementById('defaultAddressDetail').textContent = address.address || 'Không có địa chỉ';
+              if (address) {
+                document.getElementById('defaultAddressName').textContent = address.name || 'Không có tên';
+                document.getElementById('defaultAddressPhone').textContent = address.phone || 'Không có SĐT';
+                document.getElementById('defaultAddressDetail').textContent = address.address || 'Không có địa chỉ';
+                } else {
+                document.getElementById('defaultAddressName').textContent = 'Chưa chọn địa chỉ';
+                document.getElementById('defaultAddressPhone').textContent = '';
+                document.getElementById('defaultAddressDetail').textContent = 'Vui lòng thêm địa chỉ lấy hàng';
+              }
             }
 
             // Open address selection modal
@@ -520,7 +532,7 @@
                 return;
               }
 
-              // Update pickup address input
+              // Update pickup address input with address ID
               pickupAddressInput.value = selectedAddress.id;
               
               // Update default address display
@@ -530,18 +542,15 @@
               const modal = bootstrap.Modal.getInstance(document.getElementById('addressModal'));
               modal.hide();
               
-              // Recalculate shipping fee
-              calculateShippingFee();
-              
-              // Update order summary
-              updateOrderSummary();
+              // Update order summary (không cần tính lại phí vận chuyển)
+              updateSummary();
             }
 
             // Global variables for address management
             let addresses = [];
             let editingAddressId = null;
 
-            // Open add address modal
+            // Open add address modal (updated from addresses.html)
             function openAddAddressModal() {
               editingAddressId = null;
               document.getElementById('addAddressForm').reset();
@@ -553,7 +562,7 @@
               modal.show();
             }
 
-            // Edit address from modal
+            // Edit address from modal (updated from addresses.html)
             function editAddressFromModal(id) {
               const address = addresses.find(a => String(a.id) === String(id));
               if (!address) return;
@@ -576,17 +585,23 @@
               modal.show();
             }
 
-            // Validate form
-            function validateForm() {
+            // Validate address form (updated from addresses.html)
+            function validateAddressForm() {
               const name = document.getElementById('name').value.trim();
+              const phone = document.getElementById('phone').value.trim();
               const address = document.getElementById('address').value.trim();
-              
-              if (!name) {
-                return { ok: false, msg: 'Vui lòng nhập tên địa chỉ' };
+              const postalCode = document.getElementById('postalCode').value.trim();
+
+              if (!name || !phone || !address) {
+                return { ok: false, msg: 'Vui lòng nhập đủ Tên, SĐT và Địa chỉ chi tiết.' };
               }
-              if (!address) {
-                return { ok: false, msg: 'Vui lòng nhập địa chỉ chi tiết' };
+              if (!/^\d{9,11}$/.test(phone)) {
+                return { ok: false, msg: 'Số điện thoại không hợp lệ. Chỉ số, 9–11 ký tự.' };
               }
+              if (postalCode && !/^\d{4,8}$/.test(postalCode)) {
+                return { ok: false, msg: 'Mã bưu điện không hợp lệ.' };
+              }
+
               return { ok: true };
             }
 
@@ -602,12 +617,17 @@
               alertEl.classList.add('d-none');
             }
 
-            // Save address (reused from addresses.html)
-            async function saveNewAddress() {
+            // Save address (updated from addresses.html)
+            async function saveNewAddress(event) {
+              // Prevent event bubbling to parent form
+              if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+              }
               const formAlert = document.getElementById('addressFormAlert');
               hideAlert(formAlert);
 
-              const v = validateForm();
+              const v = validateAddressForm();
               if (!v.ok) { 
                 showAlert(formAlert, 'warning', v.msg); 
                 return; 
@@ -637,6 +657,9 @@
 
                 if (!res.ok) throw new Error(await res.text() || 'Lưu địa chỉ thất bại');
 
+                // Store editing state before reset
+                const wasEditing = editingAddressId !== null;
+                
                 // Close modal
                 const modalEl = document.getElementById('addAddressModal');
                 const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
@@ -646,113 +669,41 @@
                 document.getElementById('addAddressForm').reset();
 
                 // Reload addresses in selection modal
-                loadAddressesForModal();
+                await loadAddressesForModal();
                 
                 // Reload default address
-                loadDefaultAddress();
+                await loadDefaultAddress();
 
-                alert(editingAddressId ? 'Cập nhật địa chỉ thành công!' : 'Thêm địa chỉ thành công!');
+                // Show success message
+                alert(wasEditing ? 'Cập nhật địa chỉ thành công!' : 'Thêm địa chỉ thành công!');
               } catch (err) {
                 console.error('Error saving address:', err);
                 showAlert(formAlert, 'danger', err.message || 'Lỗi khi lưu địa chỉ');
               }
             }
 
-            // Calculate shipping fee when service type or addresses change
+            // Calculate shipping fee when service type, weight or COD amount change
             async function calculateShippingFee() {
-              console.log('🔄 Calculating shipping fee...');
-              const pickupAddress = pickupAddressInput.value;
-              const deliveryAddress = document.getElementById('recipientAddress').value;
               const serviceType = serviceTypeSelect.value;
               const weight = parseFloat(document.getElementById('weight').value) || 0;
               const codAmount = parseFloat(document.getElementById('codAmount').value) || 0;
 
-              console.log('📊 Input values:', { pickupAddress, deliveryAddress, serviceType, weight, codAmount });
-
               // Kiểm tra đủ 3 trường: loại dịch vụ, cân nặng, COD
               if (!serviceType || weight <= 0 || codAmount < 0) {
-                console.log('❌ Missing required fields: serviceType, weight, or codAmount');
                 shipmentFeeInput.value = '';
                 updateSummary();
                 return;
               }
 
-              // Kiểm tra địa chỉ nếu có
-              if (!pickupAddress || !deliveryAddress) {
-                console.log('⚠️ Missing addresses, using fallback calculation');
-                // Vẫn tính phí nhưng dùng fallback
-              }
-
-              try {
-                // Show loading state
-                shipmentFeeInput.value = 'Đang tính...';
-                shipmentFeeInput.disabled = true;
-
-                // Get selected pickup address details (optional)
-                const selectedPickupAddress = addresses.find(a => String(a.id) === String(pickupAddress));
-                if (!selectedPickupAddress) {
-                  console.log('⚠️ No pickup address selected, using fallback calculation');
-                  // Vẫn tính phí nhưng dùng fallback
-                  calculateShippingFeeManually(null, deliveryAddress || 'Hà Nội', weight, codAmount);
-                  return;
-                }
-
-                // Prepare request data
-                const requestData = {
-                  pickupAddress: {
-                    address: selectedPickupAddress.address,
-                    city: selectedPickupAddress.city,
-                    district: selectedPickupAddress.district,
-                    ward: selectedPickupAddress.ward
-                  },
-                  deliveryAddress: deliveryAddress,
-                  serviceType: serviceTypeSelect.value,
-                  weight: weight,
-                  codAmount: codAmount
-                };
-
-                // Call API to calculate shipping fee
-                console.log('🌐 Calling API with data:', requestData);
-                const response = await fetch('/api/customer/calculate-shipping-fee', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  credentials: 'include',
-                  body: JSON.stringify(requestData)
-                });
-
-                console.log('📡 API response status:', response.status);
-                if (response.ok) {
-                  const result = await response.json();
-                  console.log('✅ API result:', result);
-                  shipmentFeeInput.value = result.shippingFee || 0;
-                } else {
-                  console.log('❌ API failed, using fallback');
-                  // Fallback to manual calculation if API fails
-                  calculateShippingFeeManually(selectedPickupAddress, deliveryAddress, weight, codAmount);
-                }
-              } catch (error) {
-                console.error('Error calculating shipping fee:', error);
-                // Fallback to manual calculation
-                const selectedPickupAddress = addresses.find(a => String(a.id) === String(pickupAddress));
-                if (selectedPickupAddress) {
-                  calculateShippingFeeManually(selectedPickupAddress, deliveryAddress, weight, codAmount);
-                } else {
-                  shipmentFeeInput.value = '';
-                }
-              } finally {
-                shipmentFeeInput.disabled = false;
-                updateSummary();
-              }
+              // Tính phí vận chuyển dựa trên: loại dịch vụ, cân nặng, tiền COD
+              calculateShippingFeeManually(serviceType, weight, codAmount);
             }
 
-            // Manual calculation fallback
-            function calculateShippingFeeManually(pickupAddress, deliveryAddress, weight, codAmount) {
-              console.log('🔧 Using manual calculation fallback');
+            // Calculate shipping fee based on service type, weight, and COD amount
+            function calculateShippingFeeManually(serviceType, weight, codAmount) {
+              
               let baseFee = 0;
-              const serviceType = serviceTypeSelect.value;
-
+              
               // Base fee by service type
               switch (serviceType) {
                 case 'CHUAN':
@@ -768,8 +719,6 @@
                   baseFee = 25000;
               }
               
-              console.log('💰 Base fee:', baseFee, 'for service type:', serviceType);
-
               // Weight-based fee
               let weightFee = 0;
               if (weight > 0) {
@@ -790,32 +739,12 @@
                 codFee = Math.max(5000, Math.round(codAmount * 0.02));
               }
 
-              // Distance-based fee (simplified)
-              let distanceFee = 0;
-              if (pickupAddress && deliveryAddress) {
-                const pickupCity = pickupAddress.city || '';
-                const deliveryCity = deliveryAddress.split(',')[1]?.trim() || '';
-                
-                if (pickupCity !== deliveryCity) {
-                  distanceFee = 10000; // Inter-city fee
-                }
-              } else {
-                // Default distance fee when no addresses
-                distanceFee = 5000;
-              }
-
-              // Calculate final fee
-              const finalFee = baseFee + weightFee + codFee + distanceFee;
-              console.log('🧮 Final calculation:', {
-                baseFee,
-                weightFee,
-                codFee,
-                distanceFee,
-                finalFee: Math.round(finalFee)
-              });
+              // Calculate final fee (chỉ dựa trên 3 yếu tố: loại dịch vụ, cân nặng, COD)
+              const finalFee = baseFee + weightFee + codFee;
+              
               shipmentFeeInput.value = Math.round(finalFee);
-              console.log('✅ Shipping fee set to:', shipmentFeeInput.value);
-            }
+              updateSummary();
+              }
 
             // Update summary section
             function updateSummary() {
@@ -933,7 +862,6 @@
 
             // Toggle recipient payment function
             function toggleRecipientPayment() {
-              console.log('🔄 Toggle recipient payment function called');
               const recipientPays = document.getElementById('recipientPays').checked;
               const summaryPayer = document.getElementById('summaryPayer');
               const paymentInfoSection = document.getElementById('paymentInfoSection');
@@ -942,15 +870,9 @@
               const codAmountHelp = document.getElementById('codAmountHelp');
               const summaryCodLabel = document.getElementById('summaryCodLabel');
               
-              console.log('📊 Current state:', { 
-                recipientPays, 
-                paymentInfoSection: !!paymentInfoSection, 
-                paymentMethodSelect: !!paymentMethodSelect 
-              });
               
               if (recipientPays) {
                 // Người nhận thanh toán - ẩn section thanh toán, hiện COD
-                console.log('✅ Người nhận thanh toán - ẩn section thanh toán, hiện COD');
                 summaryPayer.innerHTML = '<strong class="text-success">Người nhận</strong>';
                 summaryPayer.className = 'text-success';
                 paymentInfoSection.style.display = 'none';
@@ -963,8 +885,7 @@
                 summaryCodLabel.textContent = 'Tiền COD:';
               } else {
                 // Người gửi thanh toán - hiện section thanh toán, hiện Tiền hàng
-                console.log('✅ Người gửi thanh toán - hiện section thanh toán, hiện Tiền hàng');
-                summaryPayer.innerHTML = '<strong class="text-primary">Người gửi</strong>';
+                 summaryPayer.innerHTML = '<strong class="text-primary">Người gửi</strong>';
                 summaryPayer.className = 'text-primary';
                 paymentInfoSection.style.display = 'block';
                 paymentMethodSelect.required = true;
@@ -981,8 +902,17 @@
 
             // Reset form
             function resetForm() {
+              // Check if form is being processed
+              const submitBtn = document.querySelector('button[type="submit"]');
+              if (submitBtn && submitBtn.disabled) {
+                return;
+              }
+              
               form.reset();
               pickupAddressInput.value = '';
+              
+              // Reset address display
+              updateDefaultAddressDisplay(null);
               
               // Reset image preview
               const previewContainer = document.getElementById('imagePreviewContainer');
@@ -1001,10 +931,8 @@
               updateSummary();
             }
 
-            // Event listeners
+            // Event listeners - chỉ cần theo dõi 3 yếu tố: loại dịch vụ, cân nặng, COD
             serviceTypeSelect.addEventListener("change", calculateShippingFee);
-            pickupAddressInput.addEventListener("change", calculateShippingFee);
-            document.getElementById('recipientAddress').addEventListener("input", debounce(calculateShippingFee, 1000));
             document.getElementById('weight').addEventListener("input", debounce(calculateShippingFee, 1000));
             document.getElementById('codAmount').addEventListener("input", debounce(calculateShippingFee, 1000));
 
@@ -1014,18 +942,9 @@
               const weight = parseFloat(document.getElementById('weight').value) || 0;
               const codAmount = parseFloat(document.getElementById('codAmount').value) || 0;
               
-              console.log('🧪 Test calculate fee:', { serviceType, weight, codAmount });
-              
               if (serviceType && weight > 0 && codAmount >= 0) {
-                console.log('✅ Đủ 3 trường, tính phí ngay!');
-                calculateShippingFee();
-              } else {
-                console.log('❌ Thiếu trường:', { 
-                  serviceType: !serviceType, 
-                  weight: weight <= 0, 
-                  codAmount: codAmount < 0 
-                });
-              }
+                 calculateShippingFee();
+              } 
             }
 
             // Thêm event listeners để test
@@ -1039,62 +958,107 @@
               onSubmit();
             });
 
+            // Prevent cancel button click during processing
+            document.addEventListener("click", function(e) {
+              if (e.target.matches('a[id="btnCancel"]')) {
+                const submitBtn = document.querySelector('button[type="submit"]');
+                if (submitBtn && submitBtn.disabled) {
+                  e.preventDefault();
+                  return false;
+                }
+              }
+            });
+
             // Main form submission function
             async function onSubmit() {
-              console.log('🚀 Form submission started');
               
               // Validate all required fields
               if (!validateForm()) {
-                console.log('❌ Form validation failed');
                 return;
               }
               
               // Collect form data
               const formData = collectFormData();
               
-              // Console log the data
-              console.log('📊 Form Data:', formData);
               
-              // Show loading state
+              // Show loading state and disable all buttons
               const submitBtn = document.querySelector('button[type="submit"]');
-              const originalText = submitBtn.innerHTML;
+              const resetBtn = document.querySelector('button[onclick="resetForm()"]');
+              const cancelBtn = document.getElementById('btnCancel');
+
+              // Store original states
+              const originalSubmitText = submitBtn.innerHTML;
+              const originalResetText = resetBtn ? resetBtn.innerHTML : '';
+              const originalCancelText = cancelBtn ? cancelBtn.innerHTML : '';
+              
+              // Track success for form reset
+              let isSuccess = false;
+              
+              // Update submit button
               submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tạo...';
               submitBtn.disabled = true;
+              
+              // Disable reset button
+              if (resetBtn) {
+                resetBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+                resetBtn.disabled = true;
+              }
+              
+              // Disable cancel button
+              if (cancelBtn) {
+                cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+                cancelBtn.style.pointerEvents = 'none';
+                cancelBtn.style.opacity = '0.6';
+              }
               
               try {
                 // Create order
                 const orderResponse = await createOrder(formData);
-                console.log('✅ Order created:', orderResponse);
                 
                 // Create invoice
                 const invoiceResponse = await createInvoice(orderResponse.id, formData);
-                console.log('✅ Invoice created:', invoiceResponse);
                 
                 // Create payment if sender pays
                 if (!formData.recipientPays) {
                   const paymentResponse = await createPayment(orderResponse.id, formData);
-                  console.log('✅ Payment created:', paymentResponse);
-                }
+                  }
                 
                 // Show success message
                 alert(`✅ Tạo đơn hàng thành công!`);
                 
-                // Reset form
-                resetForm();
+                // Mark as success for form reset
+                isSuccess = true;
                 
               } catch (error) {
                 console.error('❌ Error creating order:', error);
                 alert('❌ Lỗi khi tạo đơn hàng: ' + error.message);
               } finally {
-                // Reset button state
-                submitBtn.innerHTML = originalText;
+                // Reset all button states
+                submitBtn.innerHTML = originalSubmitText;
                 submitBtn.disabled = false;
+                
+                // Restore reset button
+                if (resetBtn) {
+                  resetBtn.innerHTML = originalResetText;
+                  resetBtn.disabled = false;
+                }
+                
+                // Restore cancel button
+                if (cancelBtn) {
+                  cancelBtn.innerHTML = originalCancelText;
+                  cancelBtn.style.pointerEvents = 'auto';
+                  cancelBtn.style.opacity = '1';
+                }
+                
+                // Reset form if success
+                if (isSuccess) {
+                   resetForm();
+                }
               }
             }
 
             // Validate form function
             function validateForm() {
-              console.log('🔍 Starting form validation...');
               let isValid = true;
               
               // Required fields validation
@@ -1111,37 +1075,30 @@
               requiredFields.forEach(field => {
                 const element = document.getElementById(field.id);
                 if (!element || !element.value.trim()) {
-                  console.log(`❌ Missing: ${field.name}`);
-                  element.classList.add('is-invalid');
+                   element.classList.add('is-invalid');
                   isValid = false;
                 } else {
                   element.classList.remove('is-invalid');
-                  console.log(`✅ ${field.name}: ${element.value}`);
-                }
+                 }
               });
               
               // Validate pickup address
               if (!pickupAddressInput.value.trim()) {
-                console.log('❌ Missing: Địa chỉ lấy hàng');
-                alert('Vui lòng chọn địa chỉ lấy hàng!');
+                alert('Vui lòng chọn địa chỉ lấy hàng! Bạn có thể thêm địa chỉ mới nếu chưa có.');
                 isValid = false;
-              } else {
-                console.log('✅ Địa chỉ lấy hàng:', pickupAddressInput.value);
-              }
+              } 
               
               // Validate payment method if sender pays
               const recipientPays = document.getElementById('recipientPays').checked;
               if (!recipientPays) {
                 const paymentMethod = document.getElementById('paymentMethod').value;
                 if (!paymentMethod) {
-                  console.log('❌ Missing: Phương thức thanh toán');
                   document.getElementById('paymentMethod').classList.add('is-invalid');
                   alert('Vui lòng chọn phương thức thanh toán!');
                   isValid = false;
                 } else {
                   document.getElementById('paymentMethod').classList.remove('is-invalid');
-                  console.log('✅ Phương thức thanh toán:', paymentMethod);
-                }
+                  }
               }
               
               if (!isValid) {
@@ -1158,6 +1115,10 @@
               
               // Payment info is handled separately in createInvoice and createPayment
               
+              // Debug COD amount
+              const codAmountValue = document.getElementById('codAmount').value;
+              const codAmountParsed = parseFloat(codAmountValue) || 0;
+            
               // Collect all form data
               const data = {
                 // Sender info
@@ -1179,7 +1140,7 @@
                 // Payment info
                 recipientPays: recipientPays,
                 paymentMethod: recipientPays ? null : document.getElementById('paymentMethod').value,
-                paymentNote: recipientPays ? null : document.getElementById('paymentNote').value,
+                paymentNote: recipientPays ? null : "",
                 
                 // Additional info
                 notes: currentNotes,
@@ -1192,14 +1153,7 @@
             // Upload image via dedicated upload API
             async function uploadImageToCloudinary(imageFile) {
               if (!imageFile) return null;
-              
-              console.log('📸 Uploading image via upload API...');
-              console.log('📸 File info:', {
-                name: imageFile.name,
-                size: imageFile.size,
-                type: imageFile.type
-              });
-              
+             
               const formData = new FormData();
               formData.append('image', imageFile); // Sử dụng 'image' cho endpoint mới
               
@@ -1217,19 +1171,15 @@
                 }
                 
                 const result = await response.json();
-                console.log('✅ Image uploaded successfully:', {
-                  imageUrl: result.imageUrl
-                });
+                
                 return result.imageUrl; // Trả về imageUrl từ upload API
               } catch (error) {
-                console.error('❌ Image upload error:', error);
                 throw new Error(`Không thể upload ảnh: ${error.message}`);
               }
             }
 
             // Create order API call
             async function createOrder(formData) {
-              console.log('📦 Creating order...');
               
               // Upload image if exists
               let imageUrl = null;
@@ -1238,10 +1188,20 @@
                 imageUrl = await uploadImageToCloudinary(imageFile);
               }
               
+              // Get actual address from pickupAddress ID
+              let actualSenderAddress = '';
+              
+              if (formData.pickupAddress) {
+                const selectedAddress = addresses.find(addr => String(addr.id) === String(formData.pickupAddress));
+                if (selectedAddress) {
+                  actualSenderAddress = selectedAddress.address;
+                  } 
+              } 
+              
               const orderData = {
                 senderName: formData.senderName,
                 senderPhone: formData.senderPhone,
-                senderAddress: formData.pickupAddress, // Map pickupAddress to senderAddress
+                senderAddress: actualSenderAddress, // Use actual address instead of ID
                 recipientName: formData.recipientName,
                 recipientPhone: formData.recipientPhone,
                 recipientAddress: formData.recipientAddress,
@@ -1253,38 +1213,11 @@
                 imageUrl: imageUrl
               };
               
-              // Debug validation
-              console.log('📦 Order data validation:');
-              console.log('  - senderName:', orderData.senderName);
-              console.log('  - senderPhone:', orderData.senderPhone);
-              console.log('  - senderAddress:', orderData.senderAddress);
-              console.log('  - recipientName:', orderData.recipientName);
-              console.log('  - recipientPhone:', orderData.recipientPhone);
-              console.log('  - recipientAddress:', orderData.recipientAddress);
-              console.log('  - serviceType:', orderData.serviceType);
-              console.log('  - weight:', orderData.weight);
-              console.log('  - codAmount:', orderData.codAmount);
-              console.log('  - shipmentFee:', orderData.shipmentFee);
-              console.log('  - notes:', orderData.notes);
-              console.log('  - imageUrl:', orderData.imageUrl);
-              
-              // Debug recipientAddress
-              console.log('🔍 Debug recipientAddress:');
-              console.log('  - formData.recipientAddress:', formData.recipientAddress);
-              console.log('  - orderData.recipientAddress:', orderData.recipientAddress);
-              console.log('  - DOM element value:', document.getElementById('recipientAddress').value);
-              console.log('  - DOM element value length:', document.getElementById('recipientAddress').value.length);
-              console.log('  - DOM element value trimmed:', document.getElementById('recipientAddress').value.trim());
-              
               // Check if recipientAddress is empty
               if (!orderData.recipientAddress || orderData.recipientAddress.trim() === '') {
-                console.error('❌ recipientAddress is empty or null!');
-                console.error('❌ Raw form data recipientAddress:', formData.recipientAddress);
-                console.error('❌ DOM element value:', document.getElementById('recipientAddress').value);
                 throw new Error('recipientAddress is required but was empty');
               }
               
-              console.log('📦 Order data:', orderData);
               
               const response = await fetch('/api/customer/orders', {
                 method: 'POST',
@@ -1305,8 +1238,7 @@
 
             // Create invoice API call
             async function createInvoice(orderId, formData) {
-              console.log('🧾 Creating invoice...');
-              
+             
               const invoiceData = {
                 orderId: orderId,
                 totalAmount: formData.shipmentFee + formData.codAmount,
@@ -1318,7 +1250,6 @@
                   'Thanh toán bởi người gửi hàng'
               };
               
-              console.log('🧾 Invoice data:', invoiceData);
               
               const response = await fetch('/api/customer/invoices', {
                 method: 'POST',
@@ -1339,17 +1270,20 @@
 
             // Create payment API call
             async function createPayment(orderId, formData) {
-              console.log('💳 Creating payment...');
+              
+              // Calculate total amount including tax (10%)
+              const subtotal = formData.shipmentFee + formData.codAmount;
+              const taxAmount = subtotal * 0.1;
+              const totalAmount = subtotal + taxAmount;
               
               const paymentData = {
                 orderId: orderId,
-                amount: formData.shipmentFee + formData.codAmount,
+                amount: totalAmount, // Include tax in payment amount
                 method: formData.paymentMethod,
                 status: 'PENDING',
                 notes: formData.paymentNote || ''
               };
               
-              console.log('💳 Payment data:', paymentData);
               
               const response = await fetch('/api/customer/payments', {
                 method: 'POST',
@@ -1367,8 +1301,7 @@
               
               return await response.json();
             }
-           </script>
-    </div>
+          </script>
 
     <footer th:replace="fragments/footer :: footer"></footer>
 
