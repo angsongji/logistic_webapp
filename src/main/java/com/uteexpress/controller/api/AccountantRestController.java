@@ -182,8 +182,21 @@ public class AccountantRestController {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
         
+        // Update payment status (no validation on order status)
         payment.setStatus("COMPLETED");
+        payment.setUpdatedAt(LocalDateTime.now());
         paymentRepository.save(payment);
+        
+        // Update related invoice status to PAID if order exists
+        if (payment.getOrderRef() != null) {
+            Long orderId = payment.getOrderRef().getId();
+            invoiceRepository.findByOrderId(orderId).ifPresent(invoice -> {
+                invoice.setStatus(Invoice.InvoiceStatus.PAID);
+                invoice.setPaymentDate(LocalDateTime.now());
+                invoiceRepository.save(invoice);
+                System.out.println("Invoice #" + invoice.getId() + " status updated to PAID");
+            });
+        }
         
         return ResponseEntity.ok("Payment confirmed successfully");
     }
@@ -193,8 +206,21 @@ public class AccountantRestController {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
         
+        // Update payment status
         payment.setStatus("REFUNDED");
+        payment.setUpdatedAt(LocalDateTime.now());
         paymentRepository.save(payment);
+        
+        // Update related invoice status back to CANCELLED
+        if (payment.getOrderRef() != null) {
+            Long orderId = payment.getOrderRef().getId();
+            invoiceRepository.findByOrderId(orderId).ifPresent(invoice -> {
+                invoice.setStatus(Invoice.InvoiceStatus.CANCELLED);
+                invoice.setPaymentDate(null); // Clear payment date
+                invoiceRepository.save(invoice);
+                System.out.println("Invoice #" + invoice.getId() + " status updated to CANCELLED (refunded)");
+            });
+        }
         
         return ResponseEntity.ok("Payment refunded successfully");
     }

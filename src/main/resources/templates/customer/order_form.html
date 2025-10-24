@@ -1,59 +1,367 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
   <head th:replace="fragments/header_customer :: head"></head>
-  <body class="bg-light">
+  <style>
+    /* Modern Professional Order Form Styles */
+    body {
+      min-height: 100vh;
+      padding-bottom: 3rem;
+    }
+    
+    .order-container {
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .order-card {
+      border-radius: 16px;
+      border: none;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      background: white;
+    }
+    
+    .order-card-header {
+      color: #2c3e50;
+      padding: 2rem;
+      border: none;
+    }
+    
+    .order-card-header h4 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.75rem;
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+    
+    .section-header.primary { border-color: #667eea; color: #667eea; }
+    .section-header.success { border-color: #10b981; color: #10b981; }
+    .section-header.info { border-color: #3b82f6; color: #3b82f6; }
+    .section-header.warning { border-color: #f59e0b; color: #f59e0b; }
+    
+    .section-header i {
+      font-size: 1.5rem;
+    }
+    
+    .form-label-modern {
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+    
+    .form-control-modern {
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .form-control-modern:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+      outline: none;
+    }
+    
+    .form-control-modern:read-only {
+      background-color: #f9fafb;
+      border-color: #e5e7eb;
+    }
+    
+    .form-select-modern {
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background-position: right 1rem center;
+    }
+    
+    .form-select-modern:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+      outline: none;
+    }
+    
+    .address-card-modern {
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .address-card-modern:hover {
+      border-color: #667eea;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    }
+    
+    .btn-change-address {
+      color: #667eea;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      border: 2px solid #667eea;
+      background: white;
+    }
+    
+    .btn-change-address:hover {
+      background: #667eea;
+      color: white;
+      transform: translateY(-2px);
+    }
+    
+    .form-check-modern {
+      padding: 1rem;
+      background: #f9fafb;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+    
+    .form-check-modern:hover {
+      border-color: #667eea;
+      background: #f3f4f6;
+    }
+    
+    .form-check-input {
+      width: 1.25rem;
+      height: 1.25rem;
+      margin-top: 0.15rem;
+      cursor: pointer;
+    }
+    
+    .form-check-input:checked {
+      background-color: #667eea;
+      border-color: #667eea;
+    }
+    
+    .summary-card {
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .summary-card-header {
+      background: #f8f9fa;
+      color: #2c3e50;
+      padding: 1rem 1.5rem;
+      font-weight: 700;
+      border-bottom: 3px solid #667eea;
+    }
+    
+    .summary-card-body {
+      padding: 1.5rem;
+    }
+    
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .summary-item:last-child {
+      border-bottom: none;
+    }
+    
+    .summary-item.total {
+      background: #f3f4f6;
+      margin: 0 -1.5rem;
+      padding: 1rem 1.5rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      border-top: 3px solid #667eea;
+    }
+    
+    .btn-primary-modern {
+      background: #667eea;
+      border: none;
+      border-radius: 12px;
+      padding: 1rem 2rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: white;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-primary-modern:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      background: #5568d3;
+      color: white;
+    }
+    
+    .btn-secondary-modern {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 1rem 2rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #6b7280;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-secondary-modern:hover {
+      border-color: #667eea;
+      color: #667eea;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-danger-modern {
+      background: white;
+      border: 2px solid #ef4444;
+      border-radius: 12px;
+      padding: 1rem 2rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #ef4444;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .btn-danger-modern:hover {
+      background: #ef4444;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+    
+    .image-preview-card {
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      background: white;
+    }
+    
+    .image-preview-header {
+      background: #f9fafb;
+      border-bottom: 2px solid #e5e7eb;
+      padding: 1rem;
+    }
+    
+    .badge-modern {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    .text-required {
+      color: #ef4444;
+      font-weight: 700;
+    }
+    
+    /* Modal improvements */
+    .modal-content {
+      border-radius: 16px;
+      border: none;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .modal-header {
+      background: #f8f9fa;
+      color: #2c3e50;
+      border-radius: 16px 16px 0 0;
+      padding: 1.5rem;
+      border-bottom: 3px solid #667eea;
+    }
+    
+    .modal-header .btn-close {
+      opacity: 1;
+    }
+    
+    .modal-footer {
+      background: #f9fafb;
+      border-top: 2px solid #e5e7eb;
+      padding: 1rem 1.5rem;
+      border-radius: 0 0 16px 16px;
+    }
+    
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+      .order-card-header h4 {
+        font-size: 1.5rem;
+      }
+      
+      .section-header {
+        font-size: 1.1rem;
+      }
+      
+      .btn-primary-modern,
+      .btn-secondary-modern,
+      .btn-danger-modern {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+      }
+    }
+  </style>
+  <body>
     <nav th:replace="fragments/header_customer :: navbar"></nav>
 
     <!-- Profile & Password Modals -->
-    <div th:replace="fragments/header_customer :: profile-modal"></div>
     <div th:replace="fragments/change_password_modal :: change-password-modal"></div>
 
-    <div class="container mt-4">
+    <div class="container order-container">
       <div class="row">
-        <div class="col-lg-8 mx-auto">
-          <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-              <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Tạo đơn hàng mới</h4>
+        <div class="col-lg-10 col-xl-10 mx-auto">
+          <div class="card order-card">
+            <div class="card-header order-card-header">
+              <h4><i class="fas fa-shipping-fast me-2"></i> Tạo đơn hàng mới</h4>
             </div>
-            <div class="card-body">
+            <div class="card-body" style="padding: 2rem;">
               <form id="orderForm" enctype="multipart/form-data">
                 <!-- Sender Information Section -->
                 <div class="row mb-4">
                   <div class="col-12">
-                    <h5 class="text-primary mb-3"><i class="fas fa-user"></i> Thông tin người gửi</h5>
+                    <h5 class="section-header primary"><i class="fas fa-user"></i> Thông tin người gửi</h5>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Tên người gửi <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control" name="senderName" id="senderName" readonly>
+                      <label class="form-label-modern">Tên người gửi <span class="text-required">*</span></label>
+                      <input type="text" class="form-control form-control-modern" name="senderName" id="senderName" readonly>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Số điện thoại <span class="text-danger">*</span></label>
-                      <input type="tel" class="form-control" name="senderPhone" id="senderPhone" readonly>
+                      <label class="form-label-modern">Số điện thoại <span class="text-required">*</span></label>
+                      <input type="tel" class="form-control form-control-modern" name="senderPhone" id="senderPhone" readonly>
                     </div>
                   </div>
                   <div class="col-12">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Địa chỉ lấy hàng <span class="text-danger">*</span></label>
-                      <div class="card border-0 bg-light">
-                        <div class="card-body">
-                          <div class="d-flex align-items-start">
-                            <div class="flex-grow-1">
-                              <div id="defaultAddressInfo" class="mb-2">
-                                <div class="fw-bold" id="defaultAddressName">Đang tải...</div>
-                                <div class="fw-bold" id="defaultAddressPhone">Đang tải...</div>
-                                <div id="defaultAddressDetail">Đang tải...</div>
-                              </div>
+                      <label class="form-label-modern">Địa chỉ lấy hàng <span class="text-required">*</span></label>
+                      <div class="address-card-modern">
+                        <div class="d-flex align-items-start justify-content-between">
+                          <div class="flex-grow-1">
+                            <div id="defaultAddressInfo">
+                              <div class="fw-bold mb-1" style="color: #374151; font-size: 1.05rem;" id="defaultAddressName">Đang tải...</div>
+                              <div class="fw-bold mb-1" style="color: #6b7280;" id="defaultAddressPhone">Đang tải...</div>
+                              <div style="color: #9ca3af;" id="defaultAddressDetail">Đang tải...</div>
                             </div>
-                            <div class="ms-3">
-                              <div>
-                                <button type="button" class="btn btn-link p-0 text-primary" onclick="openAddressModal()">
-                                  Thay Đổi
-                                </button>
-                              </div>
-                            </div>
+                          </div>
+                          <div class="ms-3">
+                            <button type="button" class="btn btn-change-address" onclick="openAddressModal()">
+                              <i class="fas fa-edit me-1"></i> Thay Đổi
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -65,24 +373,24 @@
                 <!-- Recipient Information Section -->
                 <div class="row mb-4">
                   <div class="col-12">
-                    <h5 class="text-success mb-3"><i class="fas fa-user-check"></i> Thông tin người nhận</h5>
+                    <h5 class="section-header success"><i class="fas fa-map-marker-alt"></i> Thông tin người nhận</h5>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Tên người nhận <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control" name="recipientName" id="recipientName" required>
+                      <label class="form-label-modern">Tên người nhận <span class="text-required">*</span></label>
+                      <input type="text" class="form-control form-control-modern" name="recipientName" id="recipientName" required placeholder="Nhập tên người nhận">
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Số điện thoại <span class="text-danger">*</span></label>
-                      <input type="tel" class="form-control" name="recipientPhone" id="recipientPhone" required>
+                      <label class="form-label-modern">Số điện thoại <span class="text-required">*</span></label>
+                      <input type="tel" class="form-control form-control-modern" name="recipientPhone" id="recipientPhone" required placeholder="VD: 0901234567">
                     </div>
                   </div>
                   <div class="col-12">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Địa chỉ giao hàng <span class="text-danger">*</span></label>
-                      <textarea class="form-control" name="recipientAddress" id="recipientAddress" rows="3" placeholder="Nhập địa chỉ giao hàng chi tiết..." required></textarea>
+                      <label class="form-label-modern">Địa chỉ giao hàng <span class="text-required">*</span></label>
+                      <textarea class="form-control form-control-modern" name="recipientAddress" id="recipientAddress" rows="3" placeholder="Nhập địa chỉ giao hàng chi tiết..." required></textarea>
                     </div>
                   </div>
             </div>
@@ -90,61 +398,61 @@
                 <!-- Service Information Section -->
                 <div class="row mb-4">
                   <div class="col-12">
-                    <h5 class="text-info mb-3"><i class="fas fa-shipping-fast"></i> Thông tin dịch vụ</h5>
+                    <h5 class="section-header info"><i class="fas fa-box"></i> Thông tin dịch vụ</h5>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Loại dịch vụ <span class="text-danger">*</span></label>
-                      <select class="form-select" name="serviceType" id="serviceType" required>
+                      <label class="form-label-modern">Loại dịch vụ <span class="text-required">*</span></label>
+                      <select class="form-select form-select-modern" name="serviceType" id="serviceType" required>
                 <option value="">Chọn loại dịch vụ</option>
-                        <option value="CHUAN">📦 Chuẩn (1.0x) - Giao trong 2-3 ngày</option>
-                        <option value="NHANH">⚡ Nhanh (1.5x) - Giao trong 1 ngày</option>
-                        <option value="TIET_KIEM">💰 Tiết kiệm (0.8x) - Giao trong 3-5 ngày</option>
+                        <option value="CHUAN">📦 Chuẩn - Giao trong 2-3 ngày</option>
+                        <option value="NHANH">⚡ Nhanh - Giao trong 1 ngày</option>
+                        <option value="TIET_KIEM">💰 Tiết kiệm - Giao trong 3-5 ngày</option>
               </select>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Cân nặng (kg)</label>
-                      <input type="number" class="form-control" name="weight" id="weight" min="0" step="0.1" placeholder="0.0">
+                      <label class="form-label-modern">Cân nặng (kg) <span class="text-required">*</span></label>
+                      <input type="number" class="form-control form-control-modern" name="weight" id="weight" min="0" step="0.1" placeholder="VD: 1.5">
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label fw-bold" id="codAmountLabel">Tiền COD (₫)</label>
-                      <input type="number" class="form-control" name="codAmount" id="codAmount" min="0" placeholder="0">
-                      <small class="text-muted" id="codAmountHelp">Số tiền thu hộ từ người nhận</small>
+                      <label class="form-label-modern" id="codAmountLabel">Tiền hàng (₫)</label>
+                      <input type="number" class="form-control form-control-modern" name="codAmount" id="codAmount" min="0" value="0" placeholder="VD: 500000">
+                      <small class="text-muted" id="codAmountHelp" style="font-size: 0.875rem;">Giá trị hàng hóa cần vận chuyển</small>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Phí vận chuyển (₫)</label>
-                      <input type="number" class="form-control" name="shipmentFee" id="shipmentFee" readonly>
-                      <small class="text-muted">Phí sẽ được tính tự động</small>
+                      <label class="form-label-modern">Phí vận chuyển (₫)</label>
+                      <input type="number" class="form-control form-control-modern" name="shipmentFee" id="shipmentFee" readonly style="background: #f3f4f6; font-weight: 600; color: #3b82f6;">
+                      <small class="text-muted" style="font-size: 0.875rem;">Phí sẽ được tính tự động</small>
                     </div>
                   </div>
                   <div class="col-12">
-                    <div class="mb-3">
-                      <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="recipientPays" onchange="toggleRecipientPayment()" checked>
-                        <label class="form-check-label fw-bold" for="recipientPays">
-                          <i class="fas fa-user-check text-primary"></i> Người nhận thanh toán
+                    <div class="form-check-modern">
+                      <div class="d-flex align-items-center">
+                        <input class="form-check-input me-2" type="checkbox" id="recipientPays" onchange="toggleRecipientPayment()">
+                        <label class="form-check-label fw-bold mb-0" for="recipientPays" style="cursor: pointer; color: #374151;">
+                          <i class="fas fa-exchange-alt me-2" style="color: #667eea;"></i> Người nhận thanh toán phí vận chuyển
                         </label>
                       </div>
-                      <small class="text-muted">Khi bật, người nhận sẽ thanh toán phí vận chuyển thay vì người gửi</small>
+                      <small class="text-muted d-block mt-2" style="font-size: 0.875rem; margin-left: 2rem;">Khi bật, người nhận sẽ thanh toán thay vì người gửi</small>
                     </div>
                   </div>
                 </div>
 
                 <!-- Payment Information Section (chỉ hiện khi không check "Người nhận thanh toán") -->
-                <div class="row mb-4" id="paymentInfoSection" style="display: none;">
+                <div class="row mb-4" id="paymentInfoSection">
                   <div class="col-12">
-                    <h5 class="text-success mb-3"><i class="fas fa-credit-card"></i> Thông tin thanh toán</h5>
+                    <h5 class="section-header success"><i class="fas fa-credit-card"></i> Phương thức thanh toán</h5>
                   </div>
-                  <div class="col-md-6">
+                  <div class="col-12">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Phương thức thanh toán <span class="text-danger">*</span></label>
-                      <select class="form-select" name="paymentMethod" id="paymentMethod" required>
+                      <label class="form-label-modern">Chọn phương thức thanh toán <span class="text-required">*</span></label>
+                      <select class="form-select form-select-modern" name="paymentMethod" id="paymentMethod" required>
                         <option value="CASH" selected>💵 Tiền mặt</option>
                         <option value="BANK_TRANSFER">🏦 Chuyển khoản ngân hàng</option>
                         <option value="VNPAY">💳 VNPay</option>
@@ -152,42 +460,36 @@
                       </select>
                     </div>
                   </div>
-                  <!-- <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label fw-bold">Ghi chú thanh toán</label>
-                      <textarea class="form-control" name="paymentNote" id="paymentNote" rows="2" placeholder="Ghi chú về phương thức thanh toán..."></textarea>
-                    </div>
-                  </div> -->
                 </div>
 
                 <!-- Additional Information Section -->
                 <div class="row mb-4">
                   <div class="col-12">
-                    <h5 class="text-warning mb-3"><i class="fas fa-info-circle"></i> Thông tin bổ sung</h5>
+                    <h5 class="section-header warning"><i class="fas fa-clipboard"></i> Thông tin bổ sung</h5>
                   </div>
                   <div class="col-12">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Ghi chú</label>
-                      <textarea class="form-control" name="notes" id="notes" rows="3" placeholder="Ghi chú thêm về đơn hàng..."></textarea>
+                      <label class="form-label-modern">Ghi chú</label>
+                      <textarea class="form-control form-control-modern" name="notes" id="notes" rows="3" placeholder="Ghi chú thêm về đơn hàng..."></textarea>
                     </div>
                   </div>
                   <div class="col-12">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Ảnh sản phẩm gửi</label>
-                      <input type="file" class="form-control" name="image" id="image" accept="image/*" onchange="previewImage(this)">
-                      <small class="text-muted">Tải lên ảnh sản phẩm gửi (tùy chọn)</small>
+                      <label class="form-label-modern">Ảnh sản phẩm gửi</label>
+                      <input type="file" class="form-control form-control-modern" name="image" id="image" accept="image/*" onchange="previewImage(this)">
+                      <small class="text-muted" style="font-size: 0.875rem;">📸 Tải lên ảnh sản phẩm (JPG, PNG, tối đa 5MB)</small>
                       
                       <!-- Image preview container -->
                       <div id="imagePreviewContainer" class="mt-3" style="display: none;">
-                        <div class="card">
-                          <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0"><i class="fas fa-image"></i> Xem trước ảnh</h6>
-                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImage()">
-                              <i class="fas fa-times"></i> Xóa ảnh
+                        <div class="image-preview-card">
+                          <div class="image-preview-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="fas fa-image me-2"></i>Xem trước ảnh</h6>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="removeImage()" style="border-radius: 8px;">
+                              <i class="fas fa-times me-1"></i> Xóa
                             </button>
                           </div>
-                          <div class="card-body text-center">
-                            <img id="imagePreview" src="" alt="Preview" class="img-fluid rounded" style="max-height: 300px; max-width: 100%;">
+                          <div class="card-body text-center p-3">
+                            <img id="imagePreview" src="" alt="Preview" class="img-fluid rounded" style="max-height: 300px; max-width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                             <div class="mt-2">
                               <small class="text-muted" id="imageInfo"></small>
                             </div>
@@ -201,48 +503,38 @@
                 <!-- Summary Section -->
                 <div class="row mb-4">
                   <div class="col-12">
-                    <div class="card bg-light">
-                      <div class="card-header">
-                        <h6 class="mb-0"><i class="fas fa-calculator"></i> Tóm tắt đơn hàng</h6>
+                    <div class="summary-card">
+                      <div class="summary-card-header">
+                        <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Tóm tắt đơn hàng</h6>
                       </div>
-                      <div class="card-body">
-                        <div class="row">
-                          <div class="col-12">
-                            <div class="d-flex justify-content-between">
-                              <span>Loại dịch vụ:</span>
-                              <span id="summaryServiceType">-</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                              <span>Cân nặng:</span>
-                              <span id="summaryWeight">0 kg</span>
-                            </div>
-                          </div>
+                      <div class="summary-card-body">
+                        <div class="summary-item">
+                          <span style="color: #6b7280; font-weight: 500;">Loại dịch vụ:</span>
+                          <span id="summaryServiceType" style="font-weight: 600; color: #374151;">-</span>
                         </div>
-                        <div class="row">
-                          <div class="col-12">
-                            <div class="d-flex justify-content-between">
-                              <span>Phí vận chuyển:</span>
-                              <span id="summaryShipmentFee">0 ₫</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                              <span id="summaryCodLabel">Tiền COD:</span>
-                              <span id="summaryCodAmount">0 ₫</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                              <span>Thuế (10%):</span>
-                              <span id="summaryTaxAmount"> - </span>
-                            </div>
-                            <hr class="my-2">
-                            <div class="d-flex justify-content-between">
-                              <span><strong>Tổng:</strong></span>
-                              <span id="summaryFinalAmount"><strong>-</strong></span>
-                            </div>
-                            <hr class="my-2">
-                            <div class="d-flex justify-content-between">
-                              <span><strong>Người thanh toán:</strong></span>
-                              <span id="summaryPayer" class="text-primary"><strong>Người gửi</strong></span>
-                            </div>
-                          </div>
+                        <div class="summary-item">
+                          <span style="color: #6b7280; font-weight: 500;">Cân nặng:</span>
+                          <span id="summaryWeight" style="font-weight: 600; color: #374151;">0 kg</span>
+                        </div>
+                        <div class="summary-item">
+                          <span style="color: #6b7280; font-weight: 500;">Phí vận chuyển:</span>
+                          <span id="summaryShipmentFee" style="font-weight: 600; color: #3b82f6;">0 ₫</span>
+                        </div>
+                        <div class="summary-item">
+                          <span id="summaryCodLabel" style="color: #6b7280; font-weight: 500;">Tiền hàng:</span>
+                          <span id="summaryCodAmount" style="font-weight: 600; color: #3b82f6;">0 ₫</span>
+                        </div>
+                        <div class="summary-item">
+                          <span style="color: #6b7280; font-weight: 500;">Thuế VAT (10%):</span>
+                          <span id="summaryTaxAmount" style="font-weight: 600; color: #f59e0b;">-</span>
+                        </div>
+                        <div class="summary-item total">
+                          <span style="color: #374151;">Tổng cộng:</span>
+                          <span id="summaryFinalAmount" style="color: #667eea;">-</span>
+                        </div>
+                        <div class="summary-item" style="background: #f9fafb; margin: 0 -1.5rem; padding: 1rem 1.5rem; border-top: 2px dashed #e5e7eb;">
+                          <span style="color: #374151; font-weight: 600;">👤 Người thanh toán:</span>
+                          <span id="summaryPayer" class="badge-modern" style=" color: white;"><strong>Người gửi</strong></span>
                         </div>
                       </div>
                     </div>
@@ -252,15 +544,15 @@
                 <!-- Action Buttons -->
                 <div class="row">
                   <div class="col-12">
-                    <div class="d-flex gap-2">
-                      <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="fas fa-check"></i> Tạo đơn hàng
+                    <div class="d-flex gap-3 flex-wrap">
+                      <button type="submit" class="btn btn-primary-modern">
+                        <i class="fas fa-paper-plane me-2"></i> Tạo đơn hàng
                       </button>
-                      <button type="button" class="btn btn-outline-secondary btn-lg" onclick="resetForm()">
-                        <i class="fas fa-undo"></i> Reset
+                      <button type="button" class="btn btn-secondary-modern" onclick="resetForm()">
+                        <i class="fas fa-redo me-2"></i> Làm mới
                       </button>
-                      <a href="/web/customer/dashboard" class="btn btn-outline-danger btn-lg" id="btnCancel">
-                        <i class="fas fa-times"></i> Hủy
+                      <a href="/web/customer/dashboard" class="btn btn-danger-modern" id="btnCancel">
+                        <i class="fas fa-times me-2"></i> Hủy
                       </a>
                     </div>
                   </div>
@@ -276,14 +568,14 @@
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title"><i class="fas fa-map-marker-alt"></i> Chọn địa chỉ lấy hàng</h5>
+              <h5 class="modal-title"><i class="fas fa-map-marker-alt me-2"></i>Chọn địa chỉ lấy hàng</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 2rem;">
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0">Chọn địa chỉ từ danh sách</h6>
-                <button type="button" class="btn btn-success btn-sm" onclick="openAddAddressModal()">
-                  <i class="fas fa-plus"></i> Thêm địa chỉ
+                <h6 class="mb-0" style="color: #374151; font-weight: 600;">Danh sách địa chỉ</h6>
+                <button type="button" class="btn btn-sm" onclick="openAddAddressModal()" style="background: #10b981; color: white; border: none; border-radius: 8px; padding: 0.5rem 1rem; font-weight: 600;">
+                  <i class="fas fa-plus me-1"></i> Thêm địa chỉ
                 </button>
               </div>
               <div id="addressList">
@@ -291,7 +583,9 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+              <button type="button" class="btn btn-secondary-modern" data-bs-dismiss="modal">
+                <i class="fas fa-times me-2"></i>Đóng
+              </button>
             </div>
           </div>
         </div>
@@ -302,64 +596,68 @@
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="addressModalTitle"><i class="fas fa-plus"></i> Thêm địa chỉ mới</h5>
+              <h5 class="modal-title" id="addressModalTitle"><i class="fas fa-plus-circle me-2"></i>Thêm địa chỉ mới</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 2rem;">
               <form id="addAddressForm">
                 <input type="hidden" id="addressId" value="">
                 <div class="mb-3">
-                  <label class="form-label fw-bold">Họ và tên <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" id="name" required placeholder="Ví dụ: Nhà riêng, Công ty...">
+                  <label class="form-label-modern">Họ và tên <span class="text-required">*</span></label>
+                  <input type="text" class="form-control form-control-modern" id="name" required placeholder="VD: Nguyễn Văn A">
                 </div>
                 <div class="mb-3">
-                  <label class="form-label fw-bold">Số điện thoại <span class="text-danger">*</span></label>
-                  <input type="tel" class="form-control" id="phone" required placeholder="VD: 0901234567">
-                  <div class="form-text">Chỉ nhập số, 9–11 ký tự.</div>
+                  <label class="form-label-modern">Số điện thoại <span class="text-required">*</span></label>
+                  <input type="tel" class="form-control form-control-modern" id="phone" required placeholder="VD: 0901234567">
+                  <small class="text-muted" style="font-size: 0.875rem;">Chỉ nhập số, 9–11 ký tự</small>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label fw-bold">Địa chỉ chi tiết <span class="text-danger">*</span></label>
-                  <textarea class="form-control" id="address" rows="3" required placeholder="Số nhà, đường, ..."></textarea>
+                  <label class="form-label-modern">Địa chỉ chi tiết <span class="text-required">*</span></label>
+                  <textarea class="form-control form-control-modern" id="address" rows="3" required placeholder="Số nhà, đường, ..."></textarea>
                 </div>
-                <div class="row">
+                <div class="row g-3">
                   <div class="col-md-4">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Tỉnh/Thành phố</label>
-                      <input type="text" class="form-control" id="city" placeholder="Tỉnh/Thành phố">
+                      <label class="form-label-modern">Tỉnh/Thành phố</label>
+                      <input type="text" class="form-control form-control-modern" id="city" placeholder="Tỉnh/TP">
                     </div>
                   </div>
                   <div class="col-md-4">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Quận/Huyện</label>
-                      <input type="text" class="form-control" id="district" placeholder="Quận/Huyện">
+                      <label class="form-label-modern">Quận/Huyện</label>
+                      <input type="text" class="form-control form-control-modern" id="district" placeholder="Quận/Huyện">
                     </div>
                   </div>
                   <div class="col-md-4">
                     <div class="mb-3">
-                      <label class="form-label fw-bold">Phường/Xã</label>
-                      <input type="text" class="form-control" id="ward" placeholder="Phường/Xã">
+                      <label class="form-label-modern">Phường/Xã</label>
+                      <input type="text" class="form-control form-control-modern" id="ward" placeholder="Phường/Xã">
                     </div>
                   </div>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label fw-bold">Mã bưu điện</label>
-                  <input type="text" class="form-control" id="postalCode" placeholder="VD: 700000">
+                  <label class="form-label-modern">Mã bưu điện</label>
+                  <input type="text" class="form-control form-control-modern" id="postalCode" placeholder="VD: 700000">
                 </div>
                 <div class="mb-3">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="isDefault">
-                    <label class="form-check-label" for="isDefault">
-                      Đặt làm địa chỉ mặc định
-                    </label>
+                  <div class="form-check-modern">
+                    <div class="d-flex align-items-center">
+                      <input class="form-check-input me-2" type="checkbox" id="isDefault">
+                      <label class="form-check-label mb-0" for="isDefault" style="cursor: pointer; color: #374151; font-weight: 500;">
+                        <i class="fas fa-star me-1" style="color: #f59e0b;"></i> Đặt làm địa chỉ mặc định
+                      </label>
+                    </div>
                   </div>
                 </div>
                 <div id="addressFormAlert" class="alert d-none" role="alert"></div>
               </form>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-              <button type="button" class="btn btn-primary" onclick="saveNewAddress(event); return false;">
-                <i class="fas fa-save"></i> Lưu địa chỉ
+              <button type="button" class="btn btn-secondary-modern" data-bs-dismiss="modal">
+                <i class="fas fa-times me-2"></i>Hủy
+              </button>
+              <button type="button" class="btn btn-primary-modern" onclick="saveNewAddress(event); return false;">
+                <i class="fas fa-save me-2"></i>Lưu địa chỉ
               </button>
             </div>
           </div>

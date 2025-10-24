@@ -1,31 +1,263 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
   <head th:replace="fragments/header_customer :: head"></head>
-  <body class="bg-light">
+  <style>
+    /* Professional & Clean Dashboard Styles */
+    body {
+      background-color: #f5f7fa;
+    }
+    
+    .page-title {
+      color: #2c3e50;
+      font-weight: 600;
+      margin-bottom: 0;
+    }
+    
+    .btn-create {
+      background-color: #3498db;
+      border: none;
+      color: white;
+      padding: 0.6rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-create:hover {
+      background-color: #2980b9;
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    }
+    
+    .search-container {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 1rem 3.5rem 1rem 1.2rem;
+      border: 2px solid #e1e8ed;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background-color: white;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    
+    .search-input::placeholder {
+      color: #95a5a6;
+    }
+    
+    .search-icon {
+      position: absolute;
+      right: 1.2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #95a5a6;
+      font-size: 1.2rem;
+      pointer-events: none;
+    }
+    
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #95a5a6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      margin-bottom: 1rem;
+    }
+    
+    .back-button:hover {
+      background-color: #7f8c8d;
+      color: white;
+      transform: translateY(-1px);
+    }
+    
+    .card-clean {
+      border: 1px solid #e1e8ed;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      background: white;
+      transition: box-shadow 0.2s ease;
+    }
+    
+    .card-clean:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+    
+    .nav-tabs-clean {
+      border-bottom: 2px solid #e1e8ed;
+      margin-bottom: 0;
+    }
+    
+    .nav-tabs-clean .nav-link {
+      border: none;
+      color: #7f8c8d;
+      font-weight: 500;
+      padding: 1rem 1.5rem;
+      transition: all 0.2s ease;
+    }
+    
+    .nav-tabs-clean .nav-link:hover {
+      color: #3498db;
+    }
+    
+    .nav-tabs-clean .nav-link.active {
+      color: #3498db;
+      border-bottom: 3px solid #3498db;
+      background: transparent;
+    }
+    
+    .table-clean thead th {
+      background-color: #f8f9fa;
+      color: #2c3e50;
+      font-weight: 600;
+      border-bottom: 2px solid #e1e8ed;
+      padding: 1rem;
+      font-size: 0.9rem;
+    }
+    
+    .table-clean tbody tr {
+      transition: background-color 0.2s ease;
+    }
+    
+    .table-clean tbody tr:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .table-clean tbody td {
+      padding: 1rem;
+      vertical-align: middle;
+    }
+    
+    .badge-clean {
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 0.85rem;
+    }
+    
+    .alert-clean {
+      border: none;
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+    }
+    
+    .loading-clean {
+      padding: 3rem;
+      text-align: center;
+    }
+    
+    /* Tracking Result Styling */
+    .tracking-card {
+      border: 1px solid #e1e8ed;
+      border-radius: 12px;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    
+    .tracking-header {
+      background-color: #3498db;
+      color: white;
+      padding: 1.2rem 1.5rem;
+      border-radius: 12px 12px 0 0;
+      font-weight: 600;
+    }
+    
+    .info-label {
+      color: #7f8c8d;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.3rem;
+    }
+    
+    .info-value {
+      color: #2c3e50;
+      font-size: 1rem;
+      padding: 0.6rem 0.8rem;
+      background-color: #f8f9fa;
+      border-radius: 6px;
+    }
+    
+    @media (max-width: 768px) {
+      .page-title {
+        font-size: 1.5rem;
+      }
+      
+      .search-input {
+        padding: 0.9rem 3rem 0.9rem 1rem;
+      }
+    }
+  </style>
+  <body>
     <nav th:replace="fragments/header_customer :: navbar"></nav>
 
     <!-- Profile & Password Modals -->
-    <!-- <div th:replace="fragments/header_customer :: profile-modal"></div> -->
-    <div
-      th:replace="fragments/change_password_modal :: change-password-modal"
-    ></div>
+    <div th:replace="fragments/change_password_modal :: change-password-modal"></div>
 
-    <div class="container mt-4">
-      <!-- Page header_customer -->
+    <div class="container mt-4 mb-5">
+      <!-- Page Header -->
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0">📦 Đơn hàng của tôi</h3>
-        <div class="btn-group d-flex gap-1" role="group">
-          <a href="/web/customer/orders/new" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Tạo đơn mới
-          </a>
-          <a href="/web/customer/tracking" class="btn btn-primary">
-            <i class="bi bi-search"></i> Tra cứu
-          </a>
-        </div>
+        <h2 class="page-title">
+          <i class="bi bi-box-seam me-2"></i>Quản lý Đơn hàng
+        </h2>
+        <a href="/web/customer/orders/new" class="btn btn-create">
+          <i class="bi bi-plus-circle me-1"></i> Tạo đơn mới
+        </a>
       </div>
 
-      <!-- Filter tabs -->
-      <ul class="nav nav-tabs mb-3" id="orderTabs" role="tablist">
+      <!-- Quick Order Tracking -->
+      <div class="search-container">
+        <input 
+          type="text"
+          id="quickSearchOrderCode" 
+          class="search-input" 
+          placeholder="Nhập mã đơn hàng để tra cứu (nhấn Enter để tìm kiếm)..."
+        />
+        <i class="bi bi-search search-icon"></i>
+      </div>
+      
+      <!-- Back Button (Hidden by default) -->
+      <button id="btnBackToOrders" class="back-button d-none">
+        <i class="bi bi-arrow-left"></i> Quay lại danh sách
+      </button>
+
+      <!-- Loading State -->
+      <div id="trackingLoading" class="loading-clean d-none mb-4">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Đang tải...</span>
+        </div>
+        <p class="mt-3 text-muted">Đang tìm kiếm đơn hàng...</p>
+      </div>
+
+      <!-- Tracking Result Section (Initially Hidden) -->
+      <div id="trackingResult" class="d-none mb-4">
+        <!-- Content will be populated by JavaScript -->
+      </div>
+
+      <!-- Alert Box -->
+      <div id="trackingAlert" class="alert alert-warning alert-clean d-none mb-4">
+        <i class="bi bi-exclamation-triangle me-2"></i><span></span>
+      </div>
+
+      <!-- Orders List Section -->
+      <div id="ordersListSection">
+        <!-- Filter tabs -->
+      <ul class="nav nav-tabs nav-tabs-clean mb-0" id="orderTabs" role="tablist">
         <li class="nav-item" role="presentation">
           <button
             class="nav-link active"
@@ -76,26 +308,29 @@
         </li>
       </ul>
 
-      <!-- Orders Table -->
-      <div class="card">
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr class="table-light">
-                  <th>Mã đơn</th>
-                  <th>Địa chỉ giao</th>
-                  <th>Trạng thái</th>
-                  <th>Tổng tiền</th>
-                  <th>Ngày tạo</th>
-                  <th>&nbsp;</th>
-                </tr>
-              </thead>
-              <tbody id="orders-table"></tbody>
-            </table>
+        <!-- Orders Table -->
+        <div class="card card-clean border-top-0" style="border-radius: 0 0 12px 12px;">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-clean mb-0">
+                <thead>
+                  <tr>
+                    <th>Mã đơn</th>
+                    <th>Địa chỉ giao</th>
+                    <th>Trạng thái</th>
+                    <th>Tổng tiền</th>
+                    <th>Ngày tạo</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="orders-table"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
+      <!-- End Orders List Section -->
+    </div>
 
       <!-- Order Detail Modal -->
       <div
@@ -734,6 +969,364 @@
           console.error("Error loading order detail", e);
           alert(e.message || "Lỗi khi tải chi tiết đơn");
         }
+      }
+
+      // ========== QUICK TRACKING FEATURE ==========
+      
+      // Handle Enter key for quick search
+      document.getElementById('quickSearchOrderCode').addEventListener('keypress', async (e) => {
+        if (e.key === 'Enter') {
+          await performTracking();
+        }
+      });
+
+      // Function to perform tracking
+      async function performTracking() {
+        const code = document.getElementById('quickSearchOrderCode').value?.trim();
+        const alertBox = document.getElementById('trackingAlert');
+        const resultBox = document.getElementById('trackingResult');
+        const loading = document.getElementById('trackingLoading');
+        const ordersSection = document.getElementById('ordersListSection');
+        const backBtn = document.getElementById('btnBackToOrders');
+        
+        if (!code) {
+          alertBox.querySelector('span').textContent = 'Vui lòng nhập mã đơn hàng';
+          alertBox.classList.remove('d-none');
+          resultBox.classList.add('d-none');
+          loading.classList.add('d-none');
+          return;
+        }
+
+        try {
+          // Show loading state
+          alertBox.classList.add('d-none');
+          resultBox.classList.add('d-none');
+          ordersSection.classList.add('d-none');
+          loading.classList.remove('d-none');
+          backBtn.classList.add('d-none');
+          
+          const res = await fetch(`/api/customer/orders/${code}/tracking`, {
+            credentials: 'include'
+          });
+          
+          if (!res.ok) throw new Error('Không tìm thấy đơn hàng');
+          
+          const o = await res.json();
+          
+          // Build tracking result HTML
+          resultBox.innerHTML = buildTrackingResultHTML(o, code);
+          
+          // Hide orders list, show tracking result
+          ordersSection.classList.add('d-none');
+          resultBox.classList.remove('d-none');
+          loading.classList.add('d-none');
+          backBtn.classList.remove('d-none');
+          
+        } catch (e) {
+          alertBox.querySelector('span').textContent = e.message || 'Lỗi khi truy vấn trạng thái đơn hàng';
+          alertBox.classList.remove('d-none');
+          resultBox.classList.add('d-none');
+          loading.classList.add('d-none');
+          ordersSection.classList.remove('d-none');
+          backBtn.classList.add('d-none');
+        }
+      }
+
+      // Handle back to orders list button
+      document.getElementById('btnBackToOrders').addEventListener('click', () => {
+        document.getElementById('trackingResult').classList.add('d-none');
+        document.getElementById('trackingAlert').classList.add('d-none');
+        document.getElementById('ordersListSection').classList.remove('d-none');
+        document.getElementById('btnBackToOrders').classList.add('d-none');
+        document.getElementById('quickSearchOrderCode').value = '';
+      });
+
+      // Helper functions for status display
+      function getStatusText(status) {
+        const statusMap = {
+          'CHO_GIAO': 'Chờ giao',
+          'DANG_GIAO': 'Đang giao',
+          'HOAN_THANH': 'Hoàn thành',
+          'THAT_BAI': 'Thất bại',
+          'HUY': 'Hủy'
+        };
+        return statusMap[status] || status;
+      }
+      
+      function getStatusClass(status) {
+        const classMap = {
+          'CHO_GIAO': 'bg-warning',
+          'DANG_GIAO': 'bg-info',
+          'HOAN_THANH': 'bg-success',
+          'THAT_BAI': 'bg-danger',
+          'HUY': 'bg-secondary'
+        };
+        return classMap[status] || 'bg-secondary';
+      }
+      
+      function getServiceTypeText(serviceType) {
+        const serviceMap = {
+          'CHUAN': 'Chuẩn',
+          'NHANH': 'Nhanh',
+          'TIET_KIEM': 'Tiết kiệm'
+        };
+        return serviceMap[serviceType] || serviceType;
+      }
+      
+      function getInvoiceStatusText(status) {
+        const statusMap = {
+          'DRAFT': 'Nháp',
+          'PENDING': 'Chờ xử lý',
+          'ISSUED': 'Đã phát hành',
+          'PAID': 'Đã thanh toán',
+          'OVERDUE': 'Quá hạn',
+          'CANCELLED': 'Đã hủy'
+        };
+        return statusMap[status] || status;
+      }
+
+      function getInvoiceStatusClass(status) {
+        const classMap = {
+          'DRAFT': 'bg-secondary',
+          'PENDING': 'bg-warning',
+          'ISSUED': 'bg-info',
+          'PAID': 'bg-success',
+          'OVERDUE': 'bg-danger',
+          'CANCELLED': 'bg-danger'
+        };
+        return classMap[status] || 'bg-secondary';
+      }
+
+      function getPaymentStatusText(status) {
+        const statusMap = {
+          'PENDING': 'Chờ thanh toán',
+          'PROCESSING': 'Đang xử lý',
+          'COMPLETED': 'Hoàn thành',
+          'FAILED': 'Thất bại',
+          'CANCELLED': 'Đã hủy',
+          'REFUNDED': 'Đã hoàn tiền'
+        };
+        return statusMap[status] || status;
+      }
+
+      function getPaymentStatusClass(status) {
+        const classMap = {
+          'PENDING': 'bg-warning',
+          'PROCESSING': 'bg-info',
+          'COMPLETED': 'bg-success',
+          'FAILED': 'bg-danger',
+          'CANCELLED': 'bg-danger',
+          'REFUNDED': 'bg-secondary'
+        };
+        return classMap[status] || 'bg-secondary';
+      }
+
+      // Function to build tracking result HTML
+      function buildTrackingResultHTML(o, code) {
+        const mostRecentUpdatedAt = getMostRecentUpdatedAt(o);
+        
+        return `
+          <div class="tracking-card">
+            <div class="tracking-header">
+              <i class="bi bi-box-seam me-2"></i>Thông tin chi tiết đơn hàng
+            </div>
+            <div class="card-body p-4">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <div class="info-label">Mã đơn hàng</div>
+                    <div class="info-value fw-bold text-primary">${o.orderCode || code}</div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="info-label">Trạng thái</div>
+                    <div>
+                      <span class="badge badge-clean ${getStatusClass(o.status)}">${getStatusText(o.status)}</span>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="info-label">Ngày tạo</div>
+                    <div class="info-value">
+                      ${o.createdAt ? new Date(o.createdAt).toLocaleString('vi-VN') : '-'}
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="info-label">Cập nhật lần cuối</div>
+                    <div class="info-value">
+                      ${mostRecentUpdatedAt ? mostRecentUpdatedAt.toLocaleString('vi-VN') : '-'}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <div class="info-label">Loại dịch vụ</div>
+                    <div class="info-value">${getServiceTypeText(o.serviceType) || 'N/A'}</div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="info-label">Cân nặng</div>
+                    <div class="info-value">${o.weight ? o.weight + ' kg' : '0 kg'}</div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="info-label">Phí vận chuyển</div>
+                    <div class="info-value text-primary fw-bold">
+                      ${o.shipmentFee ? o.shipmentFee.toLocaleString('vi-VN') + ' ₫' : '0 ₫'}
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="info-label">Tổng tiền</div>
+                    <div class="info-value text-success fw-bold">
+                      ${o.invoice?.finalAmount ? o.invoice.finalAmount.toLocaleString('vi-VN') + ' ₫' : '0 ₫'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <hr class="my-4">
+              
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <h6 class="mb-3" style="color: #2c3e50; font-weight: 600;">
+                    <i class="bi bi-person-circle me-2"></i>Thông tin người gửi
+                  </h6>
+                  <div class="mb-2">
+                    <div class="info-label">Họ tên</div>
+                    <div class="info-value">${o.senderName || '-'}</div>
+                  </div>
+                  <div class="mb-2">
+                    <div class="info-label">Số điện thoại</div>
+                    <div class="info-value">${o.senderPhone || '-'}</div>
+                  </div>
+                  <div class="mb-2">
+                    <div class="info-label">Địa chỉ</div>
+                    <div class="info-value">${o.senderAddress || '-'}</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="mb-3" style="color: #2c3e50; font-weight: 600;">
+                    <i class="bi bi-geo-alt me-2"></i>Thông tin người nhận
+                  </h6>
+                  <div class="mb-2">
+                    <div class="info-label">Họ tên</div>
+                    <div class="info-value">${o.recipientName || '-'}</div>
+                  </div>
+                  <div class="mb-2">
+                    <div class="info-label">Số điện thoại</div>
+                    <div class="info-value">${o.recipientPhone || '-'}</div>
+                  </div>
+                  <div class="mb-2">
+                    <div class="info-label">Địa chỉ</div>
+                    <div class="info-value">${o.recipientAddress || '-'}</div>
+                  </div>
+                </div>
+              </div>
+              
+              ${o.notes ? `
+              <div class="row mt-2">
+                <div class="col-12">
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Ghi chú:</label>
+                    <div class="form-control-plaintext bg-light p-2 rounded">${o.notes}</div>
+                  </div>
+                </div>
+              </div>
+              ` : ''}
+              
+              ${o.notes ? `
+              <hr class="my-4">
+              <div class="mb-3">
+                <div class="info-label">Ghi chú</div>
+                <div class="info-value">${o.notes}</div>
+              </div>
+              ` : ''}
+              
+              ${o.invoice ? `
+              <hr class="my-4">
+              <h6 class="mb-3" style="color: #2c3e50; font-weight: 600;">
+                <i class="bi bi-receipt me-2"></i>Thông tin hóa đơn
+                <span class="badge badge-clean ${getInvoiceStatusClass(o.invoice.status)} ms-2">${getInvoiceStatusText(o.invoice.status)}</span>
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="mb-2">
+                    <div class="info-label">Số hóa đơn</div>
+                    <div class="info-value">${o.invoice.invoiceNumber || '-'}</div>
+                  </div>
+                  <div class="mb-2">
+                    <div class="info-label">Ngày phát hành</div>
+                    <div class="info-value">${o.invoice.issuedDate ? new Date(o.invoice.issuedDate).toLocaleString('vi-VN') : '-'}</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-2">
+                    <div class="info-label">Tổng tiền hóa đơn</div>
+                    <div class="info-value fw-bold text-success">${o.invoice.finalAmount ? o.invoice.finalAmount.toLocaleString('vi-VN') + ' ₫' : '-'}</div>
+                  </div>
+                  <div class="mb-2">
+                    <div class="info-label">Ngày thanh toán</div>
+                    <div class="info-value">${o.invoice.paymentDate ? new Date(o.invoice.paymentDate).toLocaleString('vi-VN') : '-'}</div>
+                  </div>
+                </div>
+              </div>
+              ` : ''}
+              
+              ${o.payment ? `
+              <hr class="my-4">
+              <h6 class="mb-3" style="color: #2c3e50; font-weight: 600;">
+                <i class="bi bi-credit-card me-2"></i>Thông tin thanh toán
+                <span class="badge badge-clean ${getPaymentStatusClass(o.payment.status)} ms-2">${getPaymentStatusText(o.payment.status)}</span>
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="mb-2">
+                    <div class="info-label">Số tiền thanh toán</div>
+                    <div class="info-value fw-bold text-success">${o.payment.amount ? o.payment.amount.toLocaleString('vi-VN') + ' ₫' : '-'}</div>
+                  </div>
+                  <div class="mb-2">
+                    <div class="info-label">Phương thức</div>
+                    <div class="info-value">${o.payment.method || '-'}</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-2">
+                    <div class="info-label">Mã giao dịch</div>
+                    <div class="info-value">${o.payment.transactionId || '-'}</div>
+                  </div>
+                  <div class="mb-2">
+                    <div class="info-label">Ngày thanh toán</div>
+                    <div class="info-value">${o.payment.createdAt ? new Date(o.payment.createdAt).toLocaleString('vi-VN') : '-'}</div>
+                  </div>
+                </div>
+              </div>
+              ` : ''}
+              
+              ${o.imageUrl ? `
+              <hr class="my-4">
+              <h6 class="mb-3" style="color: #2c3e50; font-weight: 600;">
+                <i class="bi bi-image me-2"></i>Hình ảnh đơn hàng
+              </h6>
+              <div class="text-center p-3" style="background-color: #f8f9fa; border-radius: 10px;">
+                <img src="${o.imageUrl}" alt="Hình ảnh đơn hàng" class="img-fluid rounded shadow-sm" style="max-height: 400px; border-radius: 8px !important;" />
+              </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      // Helper function to get most recent updated date
+      function getMostRecentUpdatedAt(o) {
+        const orderUpdatedAt = o.updatedAt ? new Date(o.updatedAt) : null;
+        const invoiceUpdatedAt = o.invoice?.updatedAt ? new Date(o.invoice.updatedAt) : null;
+        const paymentUpdatedAt = o.payment?.updatedAt ? new Date(o.payment.updatedAt) : null;
+        
+        let mostRecentUpdatedAt = orderUpdatedAt;
+        if (invoiceUpdatedAt && (!mostRecentUpdatedAt || invoiceUpdatedAt > mostRecentUpdatedAt)) {
+          mostRecentUpdatedAt = invoiceUpdatedAt;
+        }
+        if (paymentUpdatedAt && (!mostRecentUpdatedAt || paymentUpdatedAt > mostRecentUpdatedAt)) {
+          mostRecentUpdatedAt = paymentUpdatedAt;
+        }
+        
+        return mostRecentUpdatedAt;
       }
 
       // Ensure dropdown works on dashboard

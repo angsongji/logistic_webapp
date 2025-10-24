@@ -1,7 +1,9 @@
 package com.uteexpress.service.impl;
 
+import com.uteexpress.entity.Invoice;
 import com.uteexpress.entity.Order;
 import com.uteexpress.entity.Payment;
+import com.uteexpress.repository.InvoiceRepository;
 import com.uteexpress.repository.OrderRepository;
 import com.uteexpress.repository.PaymentRepository;
 import com.uteexpress.service.accountant.PaymentService;
@@ -18,13 +20,16 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final InvoiceRepository invoiceRepository;
     private final NotificationService notificationService;
 
     public PaymentServiceImpl(PaymentRepository paymentRepository,
                               OrderRepository orderRepository,
+                              InvoiceRepository invoiceRepository,
                               NotificationService notificationService) {
         this.paymentRepository = paymentRepository;
         this.orderRepository = orderRepository;
+        this.invoiceRepository = invoiceRepository;
         this.notificationService = notificationService;
     }
 
@@ -74,11 +79,26 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public Payment confirmPayment(Long id) {
         Payment p = paymentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
+        
+        // Update payment status (no validation on order status)
         p.setStatus("COMPLETED");
+        p.setUpdatedAt(LocalDateTime.now());
         paymentRepository.save(p);
+        
+        // Update related invoice status to PAID if order exists
+        if (p.getOrderRef() != null) {
+            Long orderId = p.getOrderRef().getId();
+            invoiceRepository.findByOrderId(orderId).ifPresent(invoice -> {
+                invoice.setStatus(Invoice.InvoiceStatus.PAID);
+                invoice.setPaymentDate(LocalDateTime.now());
+                invoiceRepository.save(invoice);
+            });
+        }
+        
         // Note: Customer entity doesn't have notification method, skipping for now
         // notificationService.sendNotification(
         //         p.getOrderRef().getCustomer(),
@@ -88,11 +108,26 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public Payment refund(Long id) {
         Payment p = paymentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
+        
+        // Update payment status
         p.setStatus("REFUNDED");
+        p.setUpdatedAt(LocalDateTime.now());
         paymentRepository.save(p);
+        
+        // Update related invoice status back to CANCELLED
+        if (p.getOrderRef() != null) {
+            Long orderId = p.getOrderRef().getId();
+            invoiceRepository.findByOrderId(orderId).ifPresent(invoice -> {
+                invoice.setStatus(Invoice.InvoiceStatus.CANCELLED);
+                invoice.setPaymentDate(null); // Clear payment date
+                invoiceRepository.save(invoice);
+            });
+        }
+        
         // Note: Customer entity doesn't have notification method, skipping for now
         // notificationService.sendNotification(
         //         p.getOrderRef().getCustomer(),

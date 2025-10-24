@@ -210,21 +210,47 @@
     }
 
     async function confirmPayment(id) {
-        await fetch(`/api/accountant/payments/${id}/confirm`, {
-            method: 'POST',
-            credentials: 'include'
-        });
-        alert('Đã xác nhận thanh toán');
-        loadPayments();
+        if (!confirm('Bạn có chắc muốn xác nhận thanh toán này?')) return;
+        
+        try {
+            const res = await fetch(`/api/accountant/payments/${id}/confirm`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            if (!res.ok) {
+                const error = await res.text();
+                throw new Error(error);
+            }
+            
+            alert('✅ Đã xác nhận thanh toán thành công!');
+            loadPayments();
+        } catch (error) {
+            console.error('Error confirming payment:', error);
+            alert('❌ Lỗi: ' + error.message);
+        }
     }
 
     async function refund(id) {
-        await fetch(`/api/accountant/payments/${id}/refund`, {
-            method: 'POST',
-            credentials: 'include'
-        });
-        alert('Đã hoàn tiền');
-        loadPayments();
+        if (!confirm('Bạn có chắc muốn hoàn tiền cho thanh toán này?')) return;
+        
+        try {
+            const res = await fetch(`/api/accountant/payments/${id}/refund`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            if (!res.ok) {
+                const error = await res.text();
+                throw new Error(error);
+            }
+            
+            alert('✅ Đã hoàn tiền thành công!');
+            loadPayments();
+        } catch (error) {
+            console.error('Error refunding payment:', error);
+            alert('❌ Lỗi: ' + error.message);
+        }
     }
 
     loadPayments();

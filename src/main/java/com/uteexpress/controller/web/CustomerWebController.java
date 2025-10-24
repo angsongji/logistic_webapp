@@ -27,8 +27,8 @@ public class CustomerWebController {
 
     @GetMapping("/web/customer/addresses")
     public String addressesPage(Model model) {
-        model.addAttribute("title", "Quản lý địa chỉ");
-        return "customer/addresses";
+        // Redirect to profile page which now includes address management
+        return "redirect:/web/customer/profile";
     }
 
     @GetMapping("/web/customer/chat")
